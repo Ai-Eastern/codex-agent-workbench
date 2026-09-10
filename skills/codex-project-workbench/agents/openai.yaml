@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex 项目开发与知识接续"
+  short_description: "结合本地项目知识、原生子智能体与 LangGraph 调度推进开发"
+  default_prompt: "使用 $codex-project-workbench 检索当前项目经验，选择合适的执行方式并完成这项开发任务。"
+policy:
+  allow_implicit_invocation: true

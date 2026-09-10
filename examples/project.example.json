@@ -1,0 +1,17 @@
+{
+  "projectId": "example-project",
+  "projectRoot": "D:/Projects/example-project",
+  "controlRoot": "D:/Projects/example-project/.codex-workbench/control",
+  "workRoot": "D:/Projects/example-project/work",
+  "vaultRoot": "D:/Projects/example-project/.codex-workbench/knowledge",
+  "pmThreadId": "11111111-1111-4111-8111-111111111111",
+  "workerThreads": {
+    "A": "22222222-2222-4222-8222-222222222222",
+    "B": "33333333-3333-4333-8333-333333333333",
+    "C": "44444444-4444-4444-8444-444444444444"
+  },
+  "maxWorkers": 3,
+  "model": "gpt-5.5",
+  "thinking": "low",
+  "captureEnabled": true
+}

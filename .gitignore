@@ -1,0 +1,14 @@
+node_modules/
+.runtime/
+.local/
+.env
+.env.*
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+*.docx
+*.pdf
+coverage/
+!examples/project.example.json

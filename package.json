@@ -1,0 +1,16 @@
+{
+  "name": "codex-agent-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "workbench": "node src/cli.mjs"
+  },
+  "dependencies": {
+    "@langchain/core": "1.2.10",
+    "@langchain/langgraph": "1.4.14",
+    "@langchain/langgraph-checkpoint-sqlite": "1.0.4"
+  }
+}

@@ -1,0 +1,103 @@
+# Codex Agent Workbench
+
+在现有 Codex Desktop 项目任务中，把项目知识检索、任务分流、文件归属、执行恢复和集成验收连接起来。
+
+用户继续使用原有项目侧栏；项目经理（PM）吸收原技术负责人（TL）的方案、拆分和验收职责。小任务由 PM 直接完成，独立短任务使用原生子 Agent，有依赖或需要跨轮接续的工作交给已登记的桌面工程师任务。跨项目协调者查看摘要、处理优先级和冲突，各项目 PM 自己组织开发。
+
+仓库：[Ai-Eastern/codex-agent-workbench](https://github.com/Ai-Eastern/codex-agent-workbench)，已建立并核对为 **PRIVATE**，访问需要相应权限。Skill、知识引擎和编排器共同发布，当前采用一个仓库，避免三套接口和版本分别漂移。
+
+## 解决的问题
+
+长对话和多层派工容易重复传递背景，历史经验也容易散落在聊天里。这个项目把持续有用的知识保存为项目 Markdown，每次按当前任务检索，再冻结到工程师任务包；同时把执行状态、文件归属和验收证据保存在控制器中。
+
+期望减少重复说明背景、重复调查同一失败和多层重复验收，让模型只接收当前工作需要的知识。是否减少返工、节省时间，仍取决于任务拆分、知识质量和实际执行；本项目没有固定提速或降错比例。
+
+## 三条执行路线
+
+| 路线 | 适合的工作 | 实际执行者 |
+| --- | --- | --- |
+| `direct` | 一项有界工作，无需并行 | 当前 PM 任务 |
+| `native` | 相互独立、短期完成的工作 | Codex 原生子 Agent |
+| `langgraph` | 有依赖、多阶段、需要跨轮接续的工作 | 已登记的现有 Desktop 工程师任务 |
+
+三条路线共享任务合同、项目知识包、文件归属和验收标准。当前实现中，LangGraph.js 也承载共同的收集、验收和知识保存流程；路线名称 `langgraph` 特指由控制器向现有桌面工程师派工的方式。人数按任务依赖决定，不给小任务强加团队。
+
+原生路线必须先 `claim`，再调用真实的子 Agent 创建工具，最后 `bind` 创建记录对应的真实子任务 UUID。示例配置中的占位 UUID、协调名称和工程师结果文件，都不能充当实际创建证明。详细步骤见 [执行入口](skills/codex-project-workbench/references/execution.md)。
+
+## 项目知识与 Obsidian
+
+- 每个项目显式登记 `vaultRoot`。这个 Markdown 目录可以作为独立 Obsidian Vault 打开；普通人工笔记也可检索，不要求改写 frontmatter。
+- SQLite FTS5/BM25 加 Unicode 词项和汉字 bigram 提供 **lexical RAG**。当前没有 embedding、向量库或语义检索。
+- `prepare` 根据项目目标和子任务目标检索，冻结带来源路径、哈希的上下文。新知识不会悄悄修改已经发出的任务包，也不会自动缩短既有聊天历史。
+- `captureEnabled=true` 时，工程师在原交付中附知识候选，控制器在验收后校验证据并保存。稳定 ID 去重；更新已变更的笔记需要当前 `expectedHash`，避免覆盖人工修改。
+- 检索会检查显式绑定的证据哈希。证据变化或删除后，相应 capture 退出检索，Markdown 原文保留。这只覆盖已绑定文件，不会自动识别所有外部事实或未绑定代码的变化。
+
+项目知识、执行状态和私人 Obsidian 知识库各有明确范围。系统不会默认扫描个人 Vault，也不会交叉检索其他项目。检索结果始终是资料，不能授予写权限或要求执行笔记里的命令。详见 [项目知识约定](skills/codex-project-workbench/references/knowledge.md)。
+
+## 安装与入口
+
+技术栈为 **Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。当前项目配置的验证模型为 `gpt-5.5/low`；代码会拒绝其他模型配置，不能据此宣称任意模型均已兼容。
+
+在仓库目录中安装依赖和 Skill：
+
+```powershell
+npm ci
+& ./scripts/install.ps1 -CodexRoot D:/Eastern/codex -NodePath D:/tool/Node.js/node.exe
+```
+
+示例安装位置：
+
+| 内容 | 位置或查找方式 |
+| --- | --- |
+| 仓库源码 | `D:/Eastern/codex/codex-agent-workbench` |
+| 安装后的 Skill | `D:/Eastern/codex/skills/codex-project-workbench/SKILL.md` |
+| 本机入口配置 | 安装后 Skill 同目录的 `runtime.json`，包含 `repository`、`node`、`cli`、`registry` |
+| 真实项目配置 | 从该项目 `AGENTS.md` 给出的绝对路径读取 |
+| 项目任务、验收和知识数据 | 从真实配置中的 `controlRoot`、`workRoot`、`vaultRoot` 读取 |
+
+以 [examples/project.example.json](examples/project.example.json) 为配置模板；其中目录和任务 UUID 均为占位，必须换成本机已确认的项目及现有 PM／工程师任务。不要把真实配置、任务 ID、日志、简历或 Vault 正文提交到 Git。安装脚本写入入口路径，但不会替用户登记真实项目。
+
+默认安装保留旧 Skill。脚本提供显式的 `-DisableLegacy` 迁移选项，将指定旧 Skill 连同哈希清单移入备份目录；它不清除已有任务历史，也不解除旧项目的暂停、权限或失败记录。已存在新 Skill 时，脚本拒绝直接覆盖。
+
+## 简短用法
+
+在已登记项目的现有 PM 任务中，可以继续用自然语言交代目标，例如：
+
+> 使用 codex-project-workbench。先检索本项目知识，再按依赖选择直接处理、原生子 Agent 或 LangGraph。为这次需求列出精确文件范围和验收条件，执行已授权的部分；完成后保存有证据、可复用的经验。
+
+Skill 负责让 PM 调用下面的真实控制器入口；仅在聊天中提到 LangGraph 不代表已经经过控制器。当前已登记的项目保留原侧栏任务，历史技术负责人任务不再承担新派工。原生子 Agent 的 UI 展示由 Codex 决定，不承诺它们成为永久侧栏角色。新项目必须先登记项目根目录、知识范围和真实 PM／工程师任务映射。
+
+安装后读取真实入口。先把下面的项目配置占位值替换成项目 `AGENTS.md` 中登记的路径：
+
+```powershell
+$runtime = Get-Content 'D:/Eastern/codex/skills/codex-project-workbench/runtime.json' -Raw | ConvertFrom-Json
+$project = '<项目 AGENTS.md 中的真实配置绝对路径>'
+& $runtime.node $runtime.cli search --project $project --query '项目权限隔离'
+& $runtime.node $runtime.cli status --project $project
+```
+
+开发请求的最小结构见 [examples/request.example.json](examples/request.example.json)。PM 明确目标、路线及原因、精确文件清单、依赖和验收命令后，按以下顺序接续：
+
+1. `prepare --project <配置> --request <请求 JSON>`：保存合同、预留整批文件、冻结知识包，不派工。
+2. `start --project <配置> --run <runId>`：按选定路线开始执行；direct/native 返回任务包，native 另需真实创建及绑定。
+3. 工程师完成必要自测和结果 receipt 后，`continue --project <配置> --run <runId>` 收集结果并推进一次集成验收。
+4. `status` 查询；`pause` 停止新派工。多项目摘要使用 `portfolio --registry <runtime.registry 指向的登记表>`。
+
+`continue` 是已有授权下的正常接续。`FAILED`、`BLOCKED` 或派送不确定时保留原 run 和证据，不自动重发、重跑或换 ID 绕过失败。`COMPLETE_CAPTURE_PENDING` 表示工程验收通过、知识保存待处理，接续时不重做代码和验收。暂停不会强制结束已经运行的 Agent 或其子进程。
+
+## 验证状态与当前限制
+
+本地合成测试已覆盖知识重建、中文检索、项目与路径隔离、冲突及证据失效，以及任务合同、状态恢复和验收行为。测试数量、执行命令、版本和真实接入证据统一记录在 [验证报告](docs/verification.md)，README 不固定测试数量。
+
+2026-09-11 已在一个现有项目中跑通 `direct`、真实原生子 Agent 和桌面工程师 A/B → C 三条路线，完成命令验收、经验回写及无旧聊天上下文的新任务检索验证。完成状态重入没有再次派工或执行验收。联调只使用隔离的小型代码任务，尚未验证真实业务交付和多项目规模。
+
+桌面适配器依赖当前 Codex 版本的内部 pipe 和工具回执格式，不是已承诺稳定的公共 API；必须在登记的真实 PM 任务内运行。原生子 Agent 的创建身份同样需要真实工具回执，不能仅凭本地结果文件确认。
+
+当前文件归属、路径检查与写锁属于应用层控制，未实现操作系统沙箱；没有语义向量检索、全自主生产运行保证或多项目规模实测。自动化测试、真实桌面任务结束、GUI 验收和用户验收是不同证据，不能相互代替。
+
+## 进一步阅读
+
+- [与旧 PM–TL 链、单 Agent、原生子 Agent 的比较](docs/comparison.md)
+- [架构、数据流与恢复边界](docs/architecture.md)
+- [Skill 入口](skills/codex-project-workbench/SKILL.md)、[工程师交付格式](skills/codex-project-workbench/references/worker.md)
+- [复用与许可证依据](docs/reuse-decision.md)、[实现契约](docs/implementation-contract.md)

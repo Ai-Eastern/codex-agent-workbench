@@ -1,0 +1,115 @@
+{
+  "verifiedAt": "2026-09-10T17:42:13.599Z",
+  "profile": "gpt-5.5/low",
+  "scope": "Existing project, isolated local integration fixtures",
+  "runs": [
+    {
+      "run": "rag-desktop-01",
+      "mode": "langgraph",
+      "status": "COMPLETE",
+      "tasks": 3,
+      "checks": [
+        {
+          "id": "normalization",
+          "exitCode": 0
+        },
+        {
+          "id": "unique",
+          "exitCode": 0
+        },
+        {
+          "id": "integration",
+          "exitCode": 0
+        }
+      ],
+      "acceptedAt": "2026-09-10T17:30:29.225Z",
+      "acceptanceSha256": "a496333005b7df3c7e3fb722228a83d59d80cb00ea9c3a51274975f4ff446e96",
+      "artifactHashes": {
+        "desktop/normalize.mjs": "42c2667e3b7b4067118a541cabadbae0f02911e9a28fce683b7b7db4c6e40ffa",
+        "desktop/unique.mjs": "93567840fa1c20bf605d99d39d8f0967060ed525b9892897b3c270b401beb4e8",
+        "desktop/report.mjs": "b7175374053495ef8811914eb37eac95fd13fbaded5ff7416a2b583c4cd1caa4"
+      },
+      "captures": 1,
+      "reentry": {
+        "reused": true,
+        "commandsRerun": 0,
+        "desktopCalls": 0,
+        "receiptUnchanged": true,
+        "eventCountsUnchanged": true
+      }
+    },
+    {
+      "run": "rag-native-01",
+      "mode": "native",
+      "status": "COMPLETE",
+      "tasks": 2,
+      "checks": [
+        {
+          "id": "native-normalize",
+          "exitCode": 0
+        },
+        {
+          "id": "native-unique",
+          "exitCode": 0
+        }
+      ],
+      "acceptedAt": "2026-09-10T17:34:21.831Z",
+      "acceptanceSha256": "495fa899d95cd46c8685035b860090dd0bbd47e5bf3c634eea6a48a5696a2283",
+      "artifactHashes": {
+        "native/normalize.mjs": "ee3eb8a0727b4d9e8203bfff67d0d7d578f50478ac370e8666941094662f6e51",
+        "native/unique.mjs": "bf5ddb39f15fca6fc3838c5e75c977d4151f14593b5b5f00206b7fda3497785a"
+      },
+      "captures": 1,
+      "reentry": {
+        "reused": true,
+        "commandsRerun": 0,
+        "desktopCalls": 0,
+        "receiptUnchanged": true,
+        "eventCountsUnchanged": true
+      }
+    },
+    {
+      "run": "rag-direct-01",
+      "mode": "direct",
+      "status": "COMPLETE",
+      "tasks": 1,
+      "checks": [
+        {
+          "id": "direct-normalize",
+          "exitCode": 0
+        }
+      ],
+      "acceptedAt": "2026-09-10T17:35:00.893Z",
+      "acceptanceSha256": "01a9f5728d8af54c58c19da90192665bc7dcb1a73e287fd7722e083715651833",
+      "artifactHashes": {
+        "direct/normalize.mjs": "ee3eb8a0727b4d9e8203bfff67d0d7d578f50478ac370e8666941094662f6e51"
+      },
+      "captures": 0,
+      "reentry": {
+        "reused": true,
+        "commandsRerun": 0,
+        "desktopCalls": 0,
+        "receiptUnchanged": true,
+        "eventCountsUnchanged": true
+      }
+    }
+  ],
+  "knowledge": {
+    "currentMatches": [
+      "label-normalization-contract",
+      "native-label-normalization-verified",
+      "label-report-composition-check"
+    ],
+    "freshContextRetrieval": "A separate gpt-5.5/low agent with fork_turns=none searched the installed Skill entry, retrieved these three IDs and verified their bound source files and hashes without old chat logs or rerunning acceptance."
+  },
+  "nativeCreation": {
+    "actualToolCalls": 2,
+    "forkTurns": "none",
+    "actualChildMetadata": "Both real UUIDs, parent PM identity, project cwd and gpt-5.5/low profile checked in read-only Desktop metadata."
+  },
+  "limits": [
+    "Local command evidence, not GUI or human acceptance",
+    "No multi-project scale or controlled performance comparison",
+    "Evidence invalidation covers explicitly bound files only"
+  ]
+}

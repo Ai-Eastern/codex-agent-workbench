@@ -1,0 +1,9 @@
+{
+  "id": "label-normalization-01",
+  "objective": "实现项目标签规范化函数，并满足接口约定",
+  "mode": "direct",
+  "reason": "单个有界函数，没有并行依赖",
+  "constraints": ["仅修改任务包列出的文件", "检索并核对项目标签规则"],
+  "tasks": [{"id":"A","objective":"实现 normalize.mjs，导出 normalizeLabel(value)；输入字符串返回规范化标签","files":["normalize.mjs"],"dependsOn":[]}],
+  "checks": [{"id":"normalize-contract","command":"node","args":["--input-type=module","-e","import {normalizeLabel} from './normalize.mjs'; if(normalizeLabel(' Alpha ')!=='alpha')process.exit(1)"],"timeoutMs":30000}]
+}
