@@ -1,0 +1,364 @@
+{
+  "generatedAt": "2026-09-11T07:55:43.942Z",
+  "date": "2026-09-11",
+  "sample": "one existing feature, one observation per arm",
+  "model": "gpt-5.3-codex-spark",
+  "effort": "low",
+  "fallbackUsed": false,
+  "order": [
+    "B",
+    "A",
+    "C"
+  ],
+  "controllerCommit": "629200069df69e05d104ac52470fe31f7047e912",
+  "protocolUnchanged": true,
+  "originalSourceUnchanged": true,
+  "contractSha256": "09fcad38db8c0f1c37641ce75819dd01c5b589ebb7b55bf74b1148df6ab932c8",
+  "arms": [
+    {
+      "arm": "A",
+      "label": "单 Agent",
+      "route": "direct",
+      "preparedActors": 1,
+      "activeBusinessActors": 1,
+      "controllerStatus": "FAILED",
+      "evaluationVerdict": "FIRST_ACCEPTANCE_FAILED",
+      "endToEndPerformanceEligible": false,
+      "engineeringAcceptancePassed": false,
+      "primaryUnassistedStatus": "FAILED",
+      "maintenanceResumeCount": 0,
+      "acceptance": {
+        "corePassed": 6,
+        "coreTotal": 6,
+        "originalAssertionsPassed": 44,
+        "originalAssertionsTotal": 44,
+        "browserPassedScenarios": 1,
+        "browserTotalScenarios": 8,
+        "browserStoppedEarly": true,
+        "evidenceSha256": "ca693bf575e5263735e3e0bf1fe37f749a3387cad3a9b22f2cde73fac1ce5071"
+      },
+      "timing": {
+        "releaseToFirstAcceptanceMs": 705520,
+        "pmBusinessWallMs": 765446,
+        "pmActiveTurnSumMs": 765446,
+        "firstBusinessTurnMs": 765446,
+        "acceptanceCommandsMs": 3754
+      },
+      "usage": {
+        "input_tokens": 2627656,
+        "cached_input_tokens": 2569984,
+        "output_tokens": 22183,
+        "reasoning_output_tokens": 8126,
+        "total_tokens": 2649839,
+        "uncached_input_tokens": 57672,
+        "readiness_total_tokens": 47762,
+        "business_total_tokens": 2602077,
+        "completeReportedCounters": true
+      },
+      "actors": [
+        {
+          "role": "developer",
+          "readinessMs": 20887,
+          "businessTurns": 1,
+          "businessTurnMs": [
+            765446
+          ],
+          "businessTokens": 2602077,
+          "toolCalls": {
+            "exec_command": 38,
+            "apply_patch": 19
+          },
+          "explicitNonzeroExits": 8,
+          "patchFailures": 3
+        }
+      ],
+      "knowledge": {
+        "allPacketsContainSameSeed": true,
+        "newCaptures": 0,
+        "candidateFailure": null
+      },
+      "protectedBaselineUnchanged": true
+    },
+    {
+      "arm": "B",
+      "label": "固定专业团队",
+      "route": "langgraph",
+      "preparedActors": 3,
+      "activeBusinessActors": 3,
+      "controllerStatus": "COMPLETE_CAPTURE_PENDING",
+      "evaluationVerdict": "ENGINEERING_PASSED_CAPTURE_PENDING_PROTOCOL_VIOLATIONS",
+      "endToEndPerformanceEligible": false,
+      "engineeringAcceptancePassed": true,
+      "primaryUnassistedStatus": "COMPLETE_CAPTURE_PENDING",
+      "maintenanceResumeCount": 0,
+      "acceptance": {
+        "corePassed": 6,
+        "coreTotal": 6,
+        "originalAssertionsPassed": 44,
+        "originalAssertionsTotal": 44,
+        "browserPassedScenarios": 8,
+        "browserTotalScenarios": 8,
+        "browserStoppedEarly": false,
+        "evidenceSha256": "cf92272c05b86ee1f4b132edb4d2e8005b16f84e9cca2d72ed5c22f2b76a3c19"
+      },
+      "timing": {
+        "releaseToFirstAcceptanceMs": 153451,
+        "pmBusinessWallMs": 195287,
+        "pmActiveTurnSumMs": 195287,
+        "firstBusinessTurnMs": 195287,
+        "acceptanceCommandsMs": 4972
+      },
+      "usage": {
+        "input_tokens": 2960480,
+        "cached_input_tokens": 2807296,
+        "output_tokens": 54439,
+        "reasoning_output_tokens": 30098,
+        "total_tokens": 3014919,
+        "uncached_input_tokens": 153184,
+        "readiness_total_tokens": 143381,
+        "business_total_tokens": 2871538,
+        "completeReportedCounters": true
+      },
+      "actors": [
+        {
+          "role": "PM",
+          "readinessMs": 19166,
+          "businessTurns": 1,
+          "businessTurnMs": [
+            195287
+          ],
+          "businessTokens": 629470,
+          "toolCalls": {
+            "exec_command": 24,
+            "wait_threads": 3
+          },
+          "explicitNonzeroExits": 6,
+          "patchFailures": 0
+        },
+        {
+          "role": "D",
+          "readinessMs": 28610,
+          "businessTurns": 1,
+          "businessTurnMs": [
+            76498
+          ],
+          "businessTokens": 770794,
+          "toolCalls": {
+            "exec_command": 14,
+            "apply_patch": 6
+          },
+          "explicitNonzeroExits": 9,
+          "patchFailures": 0
+        },
+        {
+          "role": "F",
+          "readinessMs": 29497,
+          "businessTurns": 1,
+          "businessTurnMs": [
+            123115
+          ],
+          "businessTokens": 1471274,
+          "toolCalls": {
+            "exec_command": 19,
+            "apply_patch": 11
+          },
+          "explicitNonzeroExits": 6,
+          "patchFailures": 1
+        }
+      ],
+      "knowledge": {
+        "allPacketsContainSameSeed": true,
+        "newCaptures": 0,
+        "candidateFailure": "array supplied where object required"
+      },
+      "protectedBaselineUnchanged": true
+    },
+    {
+      "arm": "C",
+      "label": "动态调度",
+      "route": "direct",
+      "preparedActors": 3,
+      "activeBusinessActors": 1,
+      "controllerStatus": "COMPLETE",
+      "evaluationVerdict": "INVALID_CROSS_ARM_COPY",
+      "endToEndPerformanceEligible": false,
+      "engineeringAcceptancePassed": true,
+      "primaryUnassistedStatus": "RUNNING",
+      "maintenanceResumeCount": 1,
+      "acceptance": {
+        "corePassed": 6,
+        "coreTotal": 6,
+        "originalAssertionsPassed": 44,
+        "originalAssertionsTotal": 44,
+        "browserPassedScenarios": 8,
+        "browserTotalScenarios": 8,
+        "browserStoppedEarly": false,
+        "evidenceSha256": "b4012a348dfc4bfcf23935f4c54045f3423e484d63d6549e3bf58a63544ca269"
+      },
+      "timing": {
+        "releaseToFirstAcceptanceMs": 202249,
+        "pmBusinessWallMs": 206780,
+        "pmActiveTurnSumMs": 98454,
+        "firstBusinessTurnMs": 43977,
+        "acceptanceCommandsMs": 4583
+      },
+      "usage": {
+        "input_tokens": 1410673,
+        "cached_input_tokens": 1306240,
+        "output_tokens": 14439,
+        "reasoning_output_tokens": 7325,
+        "total_tokens": 1425112,
+        "uncached_input_tokens": 104433,
+        "readiness_total_tokens": 143104,
+        "business_total_tokens": 1282008,
+        "completeReportedCounters": true
+      },
+      "actors": [
+        {
+          "role": "PM",
+          "readinessMs": 26616,
+          "businessTurns": 2,
+          "businessTurnMs": [
+            43977,
+            54477
+          ],
+          "businessTokens": 1282008,
+          "toolCalls": {
+            "exec_command": 36,
+            "apply_patch": 1
+          },
+          "explicitNonzeroExits": 6,
+          "patchFailures": 0
+        },
+        {
+          "role": "D",
+          "readinessMs": 21854,
+          "businessTurns": 0,
+          "businessTurnMs": [],
+          "businessTokens": 0,
+          "toolCalls": {},
+          "explicitNonzeroExits": 0,
+          "patchFailures": 0
+        },
+        {
+          "role": "F",
+          "readinessMs": 20601,
+          "businessTurns": 0,
+          "businessTurnMs": [],
+          "businessTokens": 0,
+          "toolCalls": {},
+          "explicitNonzeroExits": 0,
+          "patchFailures": 0
+        }
+      ],
+      "knowledge": {
+        "allPacketsContainSameSeed": true,
+        "newCaptures": 0,
+        "candidateFailure": null
+      },
+      "protectedBaselineUnchanged": true
+    }
+  ],
+  "sharedOverhead": [
+    {
+      "role": "maintenance-active-partial",
+      "model": "gpt-6-astra",
+      "reported": {
+        "input_tokens": 5760019,
+        "cached_input_tokens": 5455744,
+        "output_tokens": 59450,
+        "reasoning_output_tokens": 30158,
+        "total_tokens": 5819469
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 5760019,
+        "cached_input_tokens": 5455744,
+        "output_tokens": 59450,
+        "reasoning_output_tokens": 30158,
+        "total_tokens": 5819469
+      },
+      "coherent": true,
+      "terminal": false,
+      "diagnostics": []
+    },
+    {
+      "role": "shared-read-only-preparation",
+      "model": "gpt-5.3-codex-spark",
+      "reported": null,
+      "knownReportedLowerBound": {
+        "input_tokens": 386113,
+        "cached_input_tokens": 373632,
+        "output_tokens": 2053,
+        "reasoning_output_tokens": 1135,
+        "total_tokens": 388166
+      },
+      "coherent": false,
+      "terminal": true,
+      "diagnostics": [
+        "counter_reset"
+      ]
+    }
+  ],
+  "integrity": {
+    "crossArmCopy": {
+      "arm": "C",
+      "from": "B",
+      "copiedFiles": [
+        {
+          "file": "privacy-export.js",
+          "sha256": "4341490285f710489ed6ebafec82b89e0759830e75be0e48b2c0b31fb6a23271"
+        },
+        {
+          "file": "privacy-export.test.js",
+          "sha256": "54f4fd786c4699c744bf456017b09a9c08f4d122033e2269fe21fe9ee7a1a379"
+        },
+        {
+          "file": "app.js",
+          "sha256": "3fbdc0ff02829e7d91eafe4a2dec3efd263d00d2f14ba7d91cd3a075e16ce046"
+        },
+        {
+          "file": "index.html",
+          "sha256": "657357fbd9ecd4f54ad463f98e34bd37c7740e086114c64c2b48fd14256f74ff"
+        },
+        {
+          "file": "styles.css",
+          "sha256": "ba04740a264765e330640630c8823f05466874849b73538e724a0a381fc5bb87"
+        },
+        {
+          "file": "privacy-export-ui.js",
+          "sha256": "48885f433a8f8582bd87a20a4f9610bc42df86541052d437c8c3b316cd18d7db"
+        },
+        {
+          "file": "privacy-export-ui.test.js",
+          "sha256": "b2b007472a75800ea54b58ddfb763a721dd60615244ef275984f2df1a67b4115"
+        }
+      ],
+      "commandStartedAt": "2026-09-11T07:49:46.855Z",
+      "commandExitCode": 0,
+      "proof": "Successful copyFileSync in execution log and seven matching SHA-256 hashes; not inferred from similarity alone."
+    },
+    "fixedPostAcceptanceChecks": {
+      "extraCommandAttempts": 9,
+      "explicitNonzeroExits": 6,
+      "wrongRootBrowserArtifactObserved": true
+    },
+    "noValidEndToEndComparison": true
+  },
+  "sourceVerification": {
+    "command": "node --test test/*.test.mjs",
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0
+  },
+  "limitations": [
+    "C copied B and is ineligible for efficiency comparison",
+    "B repeated acceptance commands and executed checks outside its assigned work copy",
+    "C required one maintenance continuation; raw cost includes it",
+    "No paired old PM-TL workflow baseline",
+    "No RAG ablation or new successful capture in this round",
+    "No actual native route this round",
+    "No multi-project scale trial",
+    "Shared maintenance is partial and preparation helper counters reset",
+    "Tokens are reported rollout telemetry, not money or subscription usage"
+  ]
+}
