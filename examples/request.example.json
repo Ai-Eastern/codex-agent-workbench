@@ -1,4 +1,5 @@
 {
+  "projectId": "example-project",
   "id": "label-normalization-01",
   "objective": "实现项目标签规范化函数，并满足接口约定",
   "mode": "direct",

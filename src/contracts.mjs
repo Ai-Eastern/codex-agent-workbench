@@ -56,6 +56,7 @@ export function configFrom(file){
 }
 export function validateRequest(value,cfg){
   const req=structuredClone(value);
+  if(req.projectId!==undefined&&req.projectId!==cfg.projectId)throw Error('Request projectId does not match selected project config');
   if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(req.id??'')||typeof req.objective!=='string'||!req.objective.trim())throw Error('Stable request id and objective required');
   if(!['direct','native','langgraph'].includes(req.mode)||typeof req.reason!=='string'||!req.reason.trim())throw Error('Explicit execution mode and reason required');
   if(!Array.isArray(req.tasks)||!req.tasks.length||req.tasks.length>cfg.maxWorkers)throw Error('Invalid task count');
@@ -63,6 +64,7 @@ export function validateRequest(value,cfg){
   for(const task of req.tasks){
     if(!/^[A-Za-z0-9_-]{1,40}$/.test(task.id??'')||ids.has(task.id)||!task.objective?.trim())throw Error('Unique task IDs and objectives required');
     ids.add(task.id);task.dependsOn??=[];
+    if(task.constraints!==undefined&&(!Array.isArray(task.constraints)||task.constraints.some(x=>typeof x!=='string')))throw Error('Task constraints must describe local module responsibilities and interfaces');
     if(!Array.isArray(task.dependsOn)||new Set(task.dependsOn).size!==task.dependsOn.length)throw Error('Invalid dependencies');
     if(!Array.isArray(task.files)||!task.files.length)throw Error('Exact file ownership required');
     for(const name of task.files){
@@ -84,6 +86,7 @@ export function validateRequest(value,cfg){
   const checkIds=new Set();
   for(const c of req.checks){
     if(!c.id||checkIds.has(c.id)||typeof c.command!=='string'||!c.command||!Array.isArray(c.args)||c.args.some(a=>typeof a!=='string'||a.includes('\0')))throw Error('Invalid argv acceptance command');
+    safePath(cfg.controlRoot,`check-output/${c.id}`);
     checkIds.add(c.id);
     if(c.timeoutMs!==undefined&&(!Number.isInteger(c.timeoutMs)||c.timeoutMs<1||c.timeoutMs>300000))throw Error('Invalid command timeout');
   }

@@ -1,0 +1,112 @@
+{
+  "capturedAt": "2026-09-11T08:39:28.544Z",
+  "status": "PARTIAL_DESKTOP_ISOLATION_UNRESOLVED",
+  "model": "gpt-5.5/low",
+  "acceptance": {
+    "passed": true,
+    "hash": "33a7175c74b7d437f9981d1892b89905bfe9f33a192856638c9eeca14ec47ae9",
+    "originalFailureHash": "b90d0c9b0b5d1567905a28d77e569af8e45bbc2fa142a668f0ee1d11ce191de4",
+    "assertions": 4,
+    "successfulHarnessInvocations": 1,
+    "explicitRecoveries": 1,
+    "artifactsUnchanged": true,
+    "originalFailurePreserved": true,
+    "checks": [
+      {
+        "id": "tags",
+        "exitCode": 0,
+        "elapsedMs": 81
+      }
+    ]
+  },
+  "knowledge": {
+    "captures": 1,
+    "hash": "48d394908b0d0eb814de5449ebc6254845000d6d851e2590925a56922f6b580e",
+    "freshReaderVerified": true
+  },
+  "actors": [
+    {
+      "role": "direct-functional-with-maintenance",
+      "model": "gpt-5.5",
+      "effort": "low",
+      "coherent": true,
+      "allTurnsTerminal": true,
+      "reported": {
+        "input_tokens": 1267206,
+        "cached_input_tokens": 1193344,
+        "output_tokens": 7836,
+        "reasoning_output_tokens": 1062,
+        "total_tokens": 1275042
+      },
+      "turns": [
+        {
+          "model": "gpt-5.5",
+          "startedAt": "2026-09-11T08:23:41.231Z",
+          "finishedAt": "2026-09-11T08:27:23.545Z",
+          "reported": {
+            "input_tokens": 1138353,
+            "cached_input_tokens": 1070720,
+            "output_tokens": 7349,
+            "reasoning_output_tokens": 935,
+            "total_tokens": 1145702
+          }
+        },
+        {
+          "model": "gpt-5.5",
+          "startedAt": "2026-09-11T08:34:34.222Z",
+          "finishedAt": "2026-09-11T08:34:52.226Z",
+          "reported": {
+            "input_tokens": 128853,
+            "cached_input_tokens": 122624,
+            "output_tokens": 487,
+            "reasoning_output_tokens": 127,
+            "total_tokens": 129340
+          }
+        }
+      ]
+    },
+    {
+      "role": "fresh-desktop-rag-reader",
+      "model": "gpt-5.5",
+      "effort": "low",
+      "coherent": true,
+      "allTurnsTerminal": true,
+      "reported": {
+        "input_tokens": 256048,
+        "cached_input_tokens": 213632,
+        "output_tokens": 2660,
+        "reasoning_output_tokens": 252,
+        "total_tokens": 258708
+      },
+      "turns": [
+        {
+          "model": "gpt-5.5",
+          "startedAt": "2026-09-11T08:36:12.666Z",
+          "finishedAt": "2026-09-11T08:37:31.679Z",
+          "reported": {
+            "input_tokens": 256048,
+            "cached_input_tokens": 213632,
+            "output_tokens": 2660,
+            "reasoning_output_tokens": 252,
+            "total_tokens": 258708
+          }
+        }
+      ]
+    }
+  ],
+  "coordinator": {
+    "model": "gpt-6-astra",
+    "snapshotOnly": true,
+    "activeTurnReported": {
+      "input_tokens": 6521164,
+      "cached_input_tokens": 6207104,
+      "output_tokens": 43260,
+      "reasoning_output_tokens": 19060,
+      "total_tokens": 6564424
+    },
+    "through": "2026-09-11T08:38:23.126Z",
+    "allMaintenanceIncluded": false
+  },
+  "maintenanceSubagentTokens": null,
+  "maintenanceSubagentTokensReason": "Not included in this Desktop role collector; do not infer zero."
+}

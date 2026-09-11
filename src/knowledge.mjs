@@ -22,6 +22,30 @@ function string(value, name, max = 200) {
   return value;
 }
 
+function captureFields(input = {}) {
+  const { id, title, body, kind, expectedHash } = input;
+  string(id, 'id');
+  if (id.startsWith('file:')) fail('KNOWLEDGE_INPUT', 'The file: id prefix is reserved for ordinary Markdown');
+  string(title, 'title');
+  string(kind, 'kind');
+  if (typeof body !== 'string' || Buffer.byteLength(body) > 256 * 1024) fail('KNOWLEDGE_LIMIT', 'Capture body must be text of at most 256 KiB');
+  if (expectedHash !== undefined && (typeof expectedHash !== 'string' || !/^[a-f\d]{64}$/iu.test(expectedHash))) fail('KNOWLEDGE_INPUT', 'Invalid expectedHash');
+  const result = { id, title, body, kind };
+  if (expectedHash !== undefined) result.expectedHash = expectedHash;
+  return result;
+}
+
+export function validateKnowledgeCandidate(candidate) {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate) || Object.getPrototypeOf(candidate) !== Object.prototype) {
+    fail('KNOWLEDGE_INPUT', 'knowledgeCandidate must be an object');
+  }
+  const allowed = new Set(['id', 'title', 'body', 'kind', 'expectedHash']);
+  for (const key of Reflect.ownKeys(candidate)) {
+    if (typeof key !== 'string' || !allowed.has(key)) fail('KNOWLEDGE_INPUT', 'Invalid knowledgeCandidate field');
+  }
+  return captureFields(candidate);
+}
+
 function hash(value) {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -302,13 +326,9 @@ export function createKnowledge({ projectId, vaultRoot, indexPath, sourceRoot } 
         return result;
       });
     },
-    capture({ id, title, body, kind, source: inputSource, expectedHash } = {}) {
-      string(id, 'id');
-      if (id.startsWith('file:')) fail('KNOWLEDGE_INPUT', 'The file: id prefix is reserved for ordinary Markdown');
-      string(title, 'title');
-      string(kind, 'kind');
-      if (typeof body !== 'string' || Buffer.byteLength(body) > 256 * 1024) fail('KNOWLEDGE_LIMIT', 'Capture body must be text of at most 256 KiB');
-      if (expectedHash !== undefined && (typeof expectedHash !== 'string' || !/^[a-f\d]{64}$/iu.test(expectedHash))) fail('KNOWLEDGE_INPUT', 'Invalid expectedHash');
+    capture(input = {}) {
+      const { id, title, body, kind, expectedHash } = captureFields(input);
+      const inputSource = input.source;
       return locked(() => {
         const verified = validateSource(inputSource);
         const meta = { version: 1, projectId, id, title, kind, source: verified };

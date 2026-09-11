@@ -16,6 +16,12 @@ Use one repository for one installed product. Borrow the tested Desktop transpor
 
 Keep the first local RAG retriever dependency-light using SQLite FTS5/BM25 and Chinese token segmentation. QMD's optional embedding models and native model runtime add installation and resource requirements before semantic retrieval quality is measured. Basic Memory was previously reviewed as a broader writable knowledge system; it is not a dependency of this release. Keyword retrieval is explicitly documented as lexical RAG, not vector/semantic search.
 
-## Next step
+## Initial implementation scope
 
 Implement and test bounded project knowledge retrieval, stable capture identity, conflict detection, route-independent packets, durable DAG dispatch and one integration acceptance. Preserve original application/runtime and old Skill copies during reversible migration. Publish only reviewed source, synthetic examples, and sanitized verification results to the new private repository.
+
+## Windows isolation follow-up, 2026-09-11
+
+Decision: use the official installed Codex permission-profile mechanism for a bounded command probe; do not build a new supervisor or claim prompt rules create a sandbox. Checked the installed CLI 0.153.4 experimental JSON schema and official [Permissions](https://learn.chatgpt.com/docs/permissions) and [App Server](https://learn.chatgpt.com/docs/app-server) documentation. The installed OpenAI Codex package identifies Apache-2.0; no upstream implementation source was copied into this change.
+
+The first CLI sandbox probe did not deny the sentinel read. A later App Server command/exec with an explicit permissionProfile, root read and a target deny did return EPERM for that target. These are distinct preserved observations. The existing Desktop pipe adapter cannot pass or read back that task permission configuration; the command-level result is not a Desktop-wide security boundary. Keep the private probe logs local and the full limitation in [repair-verification.md](repair-verification.md). No new dependency or global Desktop configuration change was introduced.
