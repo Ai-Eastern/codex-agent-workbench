@@ -2,7 +2,7 @@
 
 This is a bounded environment and Desktop connectivity experiment, not an efficiency benchmark. Live agent tasks must use GPT-5.5/low. Keep original project code, old benchmark runs, Desktop history, global permissions, credentials and private knowledge unchanged.
 
-Latest result: **FAIL for Desktop cross-group task-history isolation.** Two real remote GPT-5.5/low tasks passed identity and own-file checks; worker A then retrieved worker B's synthetic marker using `codex_app.read_thread`. Further isolation tests and efficiency comparison were stopped. See the [verified result and limitations](../../docs/desktop-isolation-results-20260911.md). Earlier checkpoints below remain as chronological evidence.
+Latest result: **FAIL for complete Desktop cross-group task-history isolation.** The original Docker/SSH experiment allowed A to read B's synthetic marker. A subsequent managed PreToolUse experiment blocked normal foreign reads, including an omitted host, but allowed the foreign marker through after hook process failure. See the [original result](../../docs/desktop-isolation-results-20260911.md) and [managed hook result](../../docs/desktop-hooks-results-20260911.md). Further tool tests and efficiency comparison stopped after the counterexample. Earlier checkpoints below remain as chronological evidence.
 
 ## Reuse Decision
 

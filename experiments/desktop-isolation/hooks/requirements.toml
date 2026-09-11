@@ -1,0 +1,16 @@
+allow_managed_hooks_only = true
+
+[features]
+hooks = true
+
+[hooks]
+managed_dir = "/opt/workbench-hooks"
+
+[[hooks.PreToolUse]]
+matcher = "*"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 -I /opt/workbench-hooks/guard.py"
+timeout = 5
+statusMessage = "Checking synthetic task read boundary"
