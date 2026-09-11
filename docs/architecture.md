@@ -46,6 +46,7 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 | 冻结任务包 | `controlRoot/runs/<runId>/packets/` | 目标、独占文件、依赖、知识来源和上下文哈希 |
 | 工程师结果 | `controlRoot/runs/<runId>/results/` | 与 run、task、attempt 绑定的实际交付 receipt |
 | 集成验收证据 | `controlRoot/runs/<runId>/acceptance.json` | 检查命令、退出结果、请求和产物哈希、证据级别 |
+| 恢复前历史 | `controlRoot/runs/<runId>/history/` | 原失败证据；返修同时保存旧任务包及回执，不覆盖首次失败 |
 | 知识保存回执 | `controlRoot/runs/<runId>/knowledge-receipt.json` | capture 结果 |
 | Markdown 笔记 | `vaultRoot` 下的 `.md` | 知识原文，可用 Obsidian 阅读和人工编辑 |
 | 全文索引 | `controlRoot/knowledge.sqlite` | 派生缓存，可以从 Markdown 重建 |
@@ -76,6 +77,10 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 | `COMPLETE` | 验收和本次保存流程完成；重入时核对证据与产物后复用 |
 
 `continue` 每次推进有界的状态步骤，不等于启动一个持续后台调度服务。PM 根据真实任务状态等待后接续；跨项目并行也需要明确授权和各项目自身的执行安排。
+
+维护者诊断后可选择两个明确入口：`retry-acceptance` 只恢复产物未变的临时验收故障，保留已通过检查；`repair-task` 必须在改代码前登记，保留原 run/合同/文件归属、生成新 attempt，重新执行全部验收。返修试运行仅支持单任务 direct/langgraph，每个 run 一次，不能自动推广到 native 或依赖图。两者都校验原失败哈希、当前产物、任务结束、锁及已知命令结果；超时或结果不明时拒绝继续。详细约束见 [执行入口](../skills/codex-project-workbench/references/execution.md)。
+
+`status` 仅返回状态摘要，不携带知识正文；等待态 `continue` 返回 `awaitingResults`，完整任务包由 `packet` 按需读取。旧调用方若依赖这些响应中的 `packets` 字段，须改为显式取包；这项接口调整用于减少重复上下文输出。
 
 ## 知识可信度与检索边界
 

@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-11",
+  "status": "COMPLETE_WITH_OPERATOR_ASSISTANCE",
+  "scope": "isolated project modules and current Codex Desktop integration",
+  "testModel": "gpt-5.3-codex-spark",
+  "thinking": "low",
+  "verifiedTestActors": 4,
+  "modelFallbacks": [],
+  "controllerMaintenanceCountedAsSparkWork": false,
+  "unitTests": {"command": "node --test", "passed": 34, "failed": 0, "skipped": 0},
+  "initialPreview": {
+    "status": "COMPLETE",
+    "pmContextFailure": true,
+    "engineerTakeoverRequired": true,
+    "selfTestsPassed": 6,
+    "independentBusinessTestsPassed": 5,
+    "controlledFailureExitCode": 23,
+    "pauseExecutedChecks": 0,
+    "failedReentryExecutedChecks": 0,
+    "explicitRecoveryExecutedChecks": ["validationGate"],
+    "passedBusinessCheckReused": true,
+    "originalFailureArchived": true,
+    "knowledgeCapturedAndRetrieved": true
+  },
+  "desktopEnvelope": {
+    "status": "COMPLETE",
+    "route": "langgraph",
+    "actualDesktopPmAndEngineer": true,
+    "freshEngineerAppliedRetrievedOverlapRule": true,
+    "firstSelfTestsPassed": 4,
+    "firstIndependentTests": {"passed": 3, "failed": 2},
+    "failure": "notice literal differed by final punctuation; original prose contract was ambiguous",
+    "explicitRepairs": 1,
+    "sameRunAndWorker": true,
+    "newAttemptForRepair": true,
+    "originalFailurePacketAndReceiptArchived": true,
+    "finalSelfTestsPassed": 4,
+    "finalIndependentTests": {"passed": 5, "failed": 0},
+    "completedReentry": {"desktopCalls": 0, "commands": 0, "acceptanceUnchanged": true}
+  },
+  "sourceApplicationAndOriginalProjectConfigUnchanged": true,
+  "limitations": [
+    "No claim of autonomous success or measured speedup",
+    "Context overflow occurred even in the first fresh PM; exact backend cause remains unknown",
+    "Spark native route unavailable in the exposed tool model list and was not tested",
+    "Task repair supports one explicit repair for a single direct or Desktop task only",
+    "No multi-project scale, GUI, real-data or production acceptance",
+    "Lexical RAG; no semantic embeddings or private Obsidian Vault integration test",
+    "Application-level controls, not an operating-system sandbox"
+  ]
+}

@@ -13,3 +13,15 @@
 `status --project <project> [--run <runId>]` 只查询。`pause --project <project> --run <runId>` 停止后续调度。continue 是用户已授权持续工作时的正常接续，不构成每轮人工审批。
 
 本版本 native 创建身份以 Codex 工具实际返回记录为准，控制器验证文件结果、attempt 身份和集成命令；不把一个 receipt 文件当作工具创建子 Agent 的独立证明。
+
+## 有界验收恢复
+
+临时外部条件已解除、全部工程师交付结束且产物未变时，维护者可在已有修复授权内调用 `retry-acceptance --project <project> --run <runId> --acceptance-hash <原失败验收文件SHA256> --reason <诊断与解除条件>`。入口归档原失败、保留此前通过的检查，转回 ACCEPTING；随后沿原 runId continue，只接续失败及剩余检查。它不会自动派工、改产物、换模型或重置失败预算。
+
+此入口不适用于代码已变、验收命令副作用未查清、执行结果未知、工程师仍运行或 BLOCKED。此前通过的检查仍适用须由诊断确认；不能把一次失败自动解释为临时故障后反复调用。
+
+## 同一任务返修
+
+代码必须改变时，先在原产物仍与失败证据一致的状态调用 `repair-task --project <project> --run <runId> --task <taskId> --acceptance-hash <失败验收SHA256> --reason <明确缺陷与修复范围>`。控制器归档旧验收、任务包、工程师回执，保留原 run、合同和文件归属，生成新 attempt；随后原 PM start/continue 派发这次明确返修。不要先改代码再绕过哈希保护。
+
+本入口仅支持单任务 direct/langgraph，且每个 run 只有一次明确返修预算；不适用于 native、多任务依赖、BLOCKED、未知或超时命令结果、已 COMPLETE 的工作。改变产物后此前验收不再适用，全部原定检查重新执行；这与临时条件解除时保留有效的已通过检查不同。再失败就保留事实，不自动循环，不换 ID 清空预算。

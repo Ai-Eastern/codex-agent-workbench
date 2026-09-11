@@ -2,6 +2,8 @@
 
 验证日期：2026-09-11（Asia/Shanghai）。这是 v0.1.0 的本地与真实 Codex 接入验证记录，不是生产性能或多项目规模结论。可机器读取的脱敏结果见 [verification.json](verification.json)。真实项目配置、任务 UUID、聊天记录、原始验收文件和项目知识保留在本地，不上传仓库。
 
+本页保留首次 5.5 发布验收事实；后续 Spark 测试、新建测试任务、故障与修正、34 项当前自动化测试见 [Spark 完整流程报告](spark-e2e.md)，不要把本页 26 项历史记录当作当前总数。
+
 ## 环境和依赖
 
 Windows；Node.js 24.18.0；实际 Agent 联调统一使用 `gpt-5.5/low`。依赖锁定为 `@langchain/core 1.2.10`、`@langchain/langgraph 1.4.14`、`@langchain/langgraph-checkpoint-sqlite 1.0.4`；精确依赖树见 lockfile。

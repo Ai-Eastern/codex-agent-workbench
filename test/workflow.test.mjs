@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {prepare,advance,status,pause,getPacket,knowledge,claimNative,bindNative} from '../src/workflow.mjs';
 import {writeJson,digest,validateRequest,configFrom} from '../src/contracts.mjs';
+import {main as cliMain} from '../src/cli.mjs';
 
 function fixture(t){
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'workbench-'));
@@ -108,6 +109,17 @@ test('explicit Spark profile reaches task packets without silently replacing the
   assert.throws(()=>status(cfg,'spark-profile'),/configuration changed/);
   writeJson(file,{...cfg,model:'unapproved-model'});
   assert.throws(()=>configFrom(file),/profile/);
+});
+test('status and waiting continuation keep task context out of repeated summaries',async t=>{
+  const cfg=fixture(t),file=path.join(cfg.projectRoot,'project.json');writeJson(file,cfg);
+  prepare(cfg,request('bounded-status'));await advance(cfg,'bounded-status');
+  const original=getPacket(cfg,'bounded-status','A');
+  const query=await cliMain(['status','--project',file,'--run','bounded-status']);
+  assert.equal(query.tasks[0].status,'ASSIGNED');assert.equal(Object.hasOwn(query,'packets'),false);
+  const waiting=await cliMain(['continue','--project',file,'--run','bounded-status']);
+  assert.deepEqual(waiting.awaitingResults,[{taskId:'A',receiptPath:original.receiptPath}]);
+  assert.equal(Object.hasOwn(waiting,'packets'),false);assert.equal(fs.existsSync(original.receiptPath),false);
+  assert.equal(getPacket(cfg,'bounded-status','A').contextHash,original.contextHash);
 });
 test('linked control descendants and reserved task names are rejected before reserving ownership',t=>{
   const cfg=fixture(t),outside=path.join(cfg.projectRoot,'outside');fs.mkdirSync(outside);fs.mkdirSync(path.join(cfg.controlRoot,'runs'),{recursive:true});
