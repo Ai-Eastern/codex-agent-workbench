@@ -1,0 +1,23 @@
+Port 2222
+ListenAddress 0.0.0.0
+HostKey /var/lib/workbench-ssh/ssh_host_ed25519_key
+PidFile /run/sshd/sshd.pid
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+UsePAM no
+AllowUsers node
+AuthorizedKeysFile /run/workbench-authorized-key
+# The coordinator bind-mounts this public key read-only; Windows mount modes
+# are not POSIX ownership evidence. No private key enters the container.
+StrictModes no
+AllowAgentForwarding no
+AllowTcpForwarding local
+PermitOpen localhost:1455 127.0.0.1:1455
+GatewayPorts no
+PermitTunnel no
+X11Forwarding no
+PermitUserEnvironment no
+Subsystem sftp internal-sftp
+LogLevel VERBOSE

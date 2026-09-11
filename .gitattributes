@@ -1,0 +1,3 @@
+experiments/desktop-isolation/*.sh text eol=lf
+experiments/desktop-isolation/Dockerfile text eol=lf
+experiments/desktop-isolation/sshd_config text eol=lf

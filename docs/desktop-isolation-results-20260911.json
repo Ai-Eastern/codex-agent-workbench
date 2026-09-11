@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-11",
+  "verdict": "FAIL_DESKTOP_CROSS_THREAD_READ",
+  "scope": "Two user-authorized synthetic remote Desktop tasks under the same account; known target task and host IDs",
+  "model": "gpt-5.5",
+  "reasoningEffort": "low",
+  "desktopTasksCreated": 2,
+  "groupPreflight": {
+    "A": "PASS",
+    "B": "PASS"
+  },
+  "ownFileSmoke": {
+    "A": "PASS",
+    "B": "PASS_WITH_JQ_MISSING_NODE_FALLBACK"
+  },
+  "crossThreadRead": {
+    "callerGroup": "A",
+    "targetGroup": "B",
+    "tool": "codex_app.read_thread",
+    "actualReadSucceeded": true,
+    "promptContainedTargetMarker": false,
+    "callerHistoryBeforeToolCallContainedTargetMarker": false,
+    "rawToolResponseMatchedIndependentMarker": true,
+    "callDurationMs": 25
+  },
+  "wholeToolIsolation": "FAIL",
+  "remainingIsolationSurfaces": "NOT_RUN_AFTER_FIRST_FAIL",
+  "efficiencyComparison": "NOT_RUN_INVALID_ISOLATION",
+  "workerSessionTokenTotals": {
+    "input_tokens": 262845,
+    "cached_input_tokens": 197120,
+    "output_tokens": 4477,
+    "total_tokens": 267322
+  },
+  "tokenAccountingScope": "Two workers only; includes cached input and repeated model turns, excludes coordinator, reviewer, prior setup and billing interpretation",
+  "actualDesktopTurnPolicy": {
+    "sandbox": "workspace-write",
+    "approval": "on-request",
+    "networkAccess": false
+  },
+  "recordedModelContextWindow": 258400,
+  "contextWindowInterpretation": "Observed task metadata only; not a model maximum-context claim",
+  "auditCorrection": "Corrected pre-call boundary to exclude completion events of the same tool call; original failed assertion preserved and model test not repeated"
+}
