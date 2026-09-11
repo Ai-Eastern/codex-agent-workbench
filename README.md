@@ -36,7 +36,7 @@
 
 ## 安装与入口
 
-技术栈为 **Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。当前项目配置的验证模型为 `gpt-5.5/low`；代码会拒绝其他模型配置，不能据此宣称任意模型均已兼容。
+技术栈为 **Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。可显式配置 `gpt-5.3-codex-spark/low` 或 `gpt-5.5/low`；首次真实三路线验证使用 5.5。Spark 的完整流程验证状态单独记录在 [Spark 测试记录](docs/spark-e2e.md)，不把配置支持当作完整兼容证明。
 
 在仓库目录中安装依赖和 Skill：
 

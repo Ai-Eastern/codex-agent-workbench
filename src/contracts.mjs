@@ -47,7 +47,7 @@ export function configFrom(file){
   if(cfg.workRoot===cfg.controlRoot||cfg.workRoot===cfg.vaultRoot||cfg.vaultRoot===cfg.controlRoot)throw Error('Use separate work, control and knowledge directories');
   if(!Number.isInteger(cfg.maxWorkers)||cfg.maxWorkers<1||cfg.maxWorkers>12)throw Error('maxWorkers must be 1..12');
   cfg.model??='gpt-5.5';cfg.thinking??='low';
-  if(cfg.model!=='gpt-5.5'||cfg.thinking!=='low')throw Error('This release live profile is gpt-5.5/low');
+  if(!['gpt-5.3-codex-spark','gpt-5.5'].includes(cfg.model)||cfg.thinking!=='low')throw Error('Supported live profiles are gpt-5.3-codex-spark/low and gpt-5.5/low');
   cfg.workerThreads??={};
   const ids=Object.values(cfg.workerThreads);
   const uuid=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;

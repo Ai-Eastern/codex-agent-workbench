@@ -99,6 +99,16 @@ test('file conflicts, traversal, request replacement and project identity drift 
   assert.throws(()=>getPacket({...cfg,projectId:'other'},'demo','A'),/configuration changed/);
   assert.throws(()=>getPacket(cfg,'../demo','A'),/Unknown run/);
 });
+test('explicit Spark profile reaches task packets without silently replacing the model',async t=>{
+  const cfg=fixture(t),file=path.join(cfg.projectRoot,'project.json');
+  writeJson(file,{...cfg,model:'gpt-5.3-codex-spark'});
+  const spark=configFrom(file);prepare(spark,request('spark-profile'));
+  const result=await advance(spark,'spark-profile');
+  assert.equal(result.packets[0].model,'gpt-5.3-codex-spark');
+  assert.throws(()=>status(cfg,'spark-profile'),/configuration changed/);
+  writeJson(file,{...cfg,model:'unapproved-model'});
+  assert.throws(()=>configFrom(file),/profile/);
+});
 test('linked control descendants and reserved task names are rejected before reserving ownership',t=>{
   const cfg=fixture(t),outside=path.join(cfg.projectRoot,'outside');fs.mkdirSync(outside);fs.mkdirSync(path.join(cfg.controlRoot,'runs'),{recursive:true});
   fs.symlinkSync(outside,path.join(cfg.controlRoot,'runs','linked'),'junction');
