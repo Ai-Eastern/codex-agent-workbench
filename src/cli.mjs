@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {configFrom,readJson,safePath} from './contracts.mjs';
-import {prepare,status,pause,advance,listRuns,knowledge,promptFor,getPacket,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
+import {prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
 import {costReport,costDiff} from './cost-report.mjs';
@@ -11,7 +11,7 @@ export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['prepare','preflight','start','continue','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff'],
+    commands:['prepare','preflight','start','continue','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff'],
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
   };
   const command=args.shift(),opts={};
@@ -28,6 +28,10 @@ export async function main(args=process.argv.slice(2)){
   }
   if(!opts.project)throw Error('--project /absolute/project.json is required');
   const cfg=configFrom(path.resolve(opts.project));
+  if(opts.output&&['delivery','continue'].includes(command)){
+    if(!path.isAbsolute(opts.output)||!fs.statSync(path.dirname(opts.output)).isDirectory())throw Error('--output requires an existing absolute parent directory');
+    if(fs.existsSync(opts.output))throw Error('--output already exists; preserve it and use status after any completed action');
+  }
   if(command==='preflight'){
     const desktop=desktopClient(cfg),entries=Object.entries(cfg.workerThreads);
     const results=await Promise.allSettled(entries.map(async([taskId,id])=>{
@@ -39,6 +43,11 @@ export async function main(args=process.argv.slice(2)){
   }
   if(command==='prepare')return prepare(cfg,readJson(opts.request));
   if(command==='status')return opts.run?status(cfg,opts.run):listRuns(cfg);
+  if(command==='delivery'){
+    const result=delivery(cfg,opts.run);
+    if(opts.output)fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+    return result;
+  }
   if(command==='pause')return pause(cfg,opts.run);
   if(command==='reconcile-dispatch')return reconcileDispatch(cfg,opts.run,opts.task,{expectedAttemptId:opts.attempt,expectedBaseline:opts.baseline,confirmedNotDelivered:opts['confirm-not-delivered']==='true',reason:opts.reason,desktop:desktopClient(cfg)});
   if(command==='repair-blocked-task')return repairBlockedTask(cfg,opts.run,opts.task,{expectedAttemptId:opts.attempt,expectedReceiptHash:opts['receipt-hash'],expectedArtifactsHash:opts['artifacts-hash'],reason:opts.reason,desktop:desktopClient(cfg)});
@@ -59,6 +68,11 @@ export async function main(args=process.argv.slice(2)){
       await armPortfolioBarrier(cfg,opts.run,opts.barrier);
     }
     const result=await advance(cfg,opts.run,{desktop,resume:command==='continue'});
+    if(command==='continue'&&result.nextAction?.type==='REPORT_ACCEPTANCE'){
+      const handoff=delivery(cfg,opts.run),withDelivery={...result,delivery:handoff};
+      if(opts.output)fs.writeFileSync(opts.output,JSON.stringify(handoff,null,2)+'\n',{flag:'wx'});
+      return withDelivery;
+    }
     if(command==='continue'&&result.packets.length){
       const {packets,...summary}=result;
       return {...summary,awaitingResults:packets.map(p=>({taskId:p.taskId,receiptPath:p.receiptPath}))};

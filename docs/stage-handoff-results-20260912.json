@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-09-12T06:59:16.390Z",
+  "comparisonType": "sequential-different-real-tasks-not-controlled-experiment",
+  "models": {
+    "PM": "gpt-5.6-sol/high",
+    "GM": "gpt-6-astra/ultra"
+  },
+  "implementation": {
+    "singleGmTurn": true,
+    "createdProjectPmTasks": 1,
+    "promptChars": 1441,
+    "pmReadinessTurns": 0,
+    "sharedControlRoot": true,
+    "oldConfigPreserved": true,
+    "automaticDelivery": true,
+    "formalAcceptanceCommands": 1,
+    "capturedKnowledgeItems": 1
+  },
+  "pm": {
+    "before": {
+      "responses": 36,
+      "meanInput": 208498.97222222222,
+      "totalTokens": 7539606,
+      "uncachedInput": 95915,
+      "cacheRatio": 0.9872214930982207,
+      "outputTokens": 33643,
+      "durationMs": 536938,
+      "prepareMs": 211001,
+      "implementationToAcceptanceMs": 235719,
+      "closureMs": 90218
+    },
+    "after": {
+      "responses": 19,
+      "meanInput": 64954.68421052631,
+      "totalTokens": 1250587,
+      "uncachedInput": 88667,
+      "cacheRatio": 0.9281547702487322,
+      "outputTokens": 16448,
+      "durationMs": 250528,
+      "prepareMs": 118246,
+      "implementationToAcceptanceMs": 124987,
+      "closureMs": 7295
+    }
+  },
+  "gm": {
+    "before": {
+      "turns": 2,
+      "responses": 16,
+      "totalTokens": 1221372,
+      "uncachedInput": 57167,
+      "durationMs": 234606
+    },
+    "after": {
+      "turns": 1,
+      "responses": 7,
+      "totalTokens": 711975,
+      "uncachedInput": 107063,
+      "durationMs": 111287,
+      "includes": "stage PM creation and binding"
+    }
+  },
+  "rawProductAndManagementDiff": {
+    "baseline": 8760978,
+    "current": 1962562,
+    "delta": -6798416,
+    "pct": -77.59882515399536,
+    "status": "changed"
+  },
+  "uncachedProductAndManagementDiff": {
+    "baseline": 153082,
+    "current": 195730,
+    "delta": 42648,
+    "pct": 27.859578526541327,
+    "status": "changed"
+  },
+  "frameworkAtCutoff": {
+    "key": "framework",
+    "complete": false,
+    "reported": null,
+    "knownReportedLowerBound": {
+      "input_tokens": 7295113,
+      "cached_input_tokens": 7058048,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 37821,
+      "reasoning_output_tokens": 16838,
+      "total_tokens": 7332934
+    },
+    "responses": 69
+  },
+  "product": {
+    "status": "COMPLETE",
+    "mode": "direct",
+    "acceptancePassed": true,
+    "knowledgeStatus": "CAPTURED",
+    "trained": false,
+    "humanVerified": false
+  },
+  "notes": [
+    "Token telemetry is not billing; cache is part of input and reasoning part of output.",
+    "GM creation/setup is included; it cannot be called pure routing cost.",
+    "Current maintainer turn remains unfinished at cutoff, so framework totals are partial.",
+    "Original task built data conversion; new task wraps the existing builder with CLI controls, so task effort differs."
+  ]
+}

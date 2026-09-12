@@ -22,6 +22,8 @@
 
 ## 状态与验收汇报
 
+完成的 continue 返回同一 `delivery` 事实包；需要落盘时附 `--output <新的绝对路径.json>`。历史已完成运行可用 `delivery --project <配置> --run <运行>` 取得同一投影。它只核对现有证据，不重跑验收；作为阶段交接和最后汇报的来源，详见 [handoff.md](handoff.md)。
+
 start、continue、status 均返回 `nextAction:{type,actorThreadId,taskIds}`。EXECUTE_DIRECT 表示当前 PM 立即完成包内工作，不等待另一执行者；CLAIM_NATIVE/BIND_NATIVE 按上述原生步骤处理；WAIT_FOR_WORKERS 才使用有界等待。REPORT_ACCEPTANCE 读取返回的 `acceptance:{verified,passed,checks,path,hash}` 汇报，不再手工运行 checks。RECONCILE_EVIDENCE 表示已验收文件或证据发生变化，不能继续使用旧通过结论。
 
 新编写的验收脚本可调用仓库 `src/check-context.mjs` 的 `requireCheckContext({expectedWorkRoot,expectedOutputRoot})`，在任何输出写入之前核对控制器上下文和 cwd，并把输出写入返回的 outputRoot。控制器为每项检查提供唯一运行目录下的输出路径。此为误调用保护，不能限制任意 shell 命令，也不能代替 OS 读取隔离。

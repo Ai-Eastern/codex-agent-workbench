@@ -31,6 +31,8 @@ description: 在 Codex 桌面进行项目开发和接续工作时，统一使用
 
 ## 工作与恢复
 
+目标已明确的小任务在同一轮选定并转派。阶段接续使用简短目标和已有交付证据，按 [references/handoff.md](references/handoff.md) 控制上下文；完成后保存工具生成的 delivery，复用验收与知识回执，不另开重复整理或确认轮。
+
 用户要求成本或效率评测时，按 [references/cost.md](references/cost.md) 使用显式任务与 turn 范围采集一次，区分框架建设、调度和产品交付；普通开发不增加成本汇报轮次。
 
 工程师收到 `WORKBENCH_RUN` 时仅按任务包执行；详细交付格式见 [references/worker.md](references/worker.md)。PM 完成必要的任务接收和一次集成验收，不让总经理重复检查相同技术结果。

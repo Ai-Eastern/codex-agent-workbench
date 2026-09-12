@@ -51,6 +51,37 @@ function acceptanceSummary(cfg,run){
     return {path:file,hash:run.acceptance_hash,verified:true,passed:accepted.passed,checks:accepted.checks.map(c=>({id:c.id,exitCode:c.exitCode})),acceptedAt:accepted.acceptedAt,evidenceLevel:accepted.evidenceLevel,humanVerified:accepted.humanVerified};
   }catch(error){return {path:file,hash:run.acceptance_hash,verified:false,message:error.message};}
 }
+function deliveryKnowledge(cfg,id,expectedIds){
+  const file=safePath(cfg.controlRoot,`runs/${id}/knowledge-receipt.json`);
+  if(!fs.existsSync(file))throw Error('Knowledge delivery receipt is missing');
+  const bytes=fs.readFileSync(file),receipt=readJson(file);
+  if(receipt.runId!==id||!Array.isArray(receipt.captures)||Object.keys(receipt).some(key=>!['runId','captures'].includes(key)))throw Error('Knowledge delivery receipt identity is invalid');
+  const captures=receipt.captures.map(c=>{
+    if(!c||Object.keys(c).some(key=>!['id','path','hash','reused'].includes(key))||typeof c.id!=='string'||typeof c.path!=='string'||typeof c.hash!=='string'||!/^[a-f\d]{64}$/i.test(c.hash))throw Error('Knowledge delivery receipt entry is invalid');
+    assertContained(cfg.vaultRoot,c.path);
+    if(!fs.existsSync(c.path)||fs.lstatSync(c.path).isSymbolicLink()||!fs.statSync(c.path).isFile())throw Error('Knowledge capture is missing');
+    const hash=digest(fs.readFileSync(c.path));if(hash!==c.hash)throw Error('Knowledge capture content changed');
+    return {id:c.id,path:c.path,hash};
+  });
+  if(captures.length!==expectedIds.length||captures.some(c=>!expectedIds.includes(c.id))||new Set(captures.map(c=>c.id)).size!==captures.length)throw Error('Knowledge delivery receipt does not match delivered candidates');
+  return {path:file,hash:digest(bytes),status:captures.length?'CAPTURED':'NO_CAPTURES',captures};
+}
+export function delivery(cfg,id){
+  const s=openStore(cfg);
+  try{
+    const run=requireRun(s,cfg,id),req=JSON.parse(run.request),tasks=s.tasks(id);
+    if(run.pause_requested||run.status!=='COMPLETE')throw Error(`Run is not complete: ${run.pause_requested?'PAUSED':run.status}`);
+    if(tasks.some(t=>t.status!=='DONE'))throw Error('Run has incomplete task delivery');
+    const acceptance=acceptanceSummary(cfg,run);
+    if(!acceptance?.verified||acceptance.passed!==true)throw Error('Acceptance evidence is missing, stale, or not passed');
+    const expectedIds=[];
+    for(const task of tasks){const result=readReceipt(cfg,task);if(!result||result.status!=='done'||digest(result)!==digest(JSON.parse(task.result)))throw Error(`Task ${task.task_id} receipt changed`);const candidate=candidateFor(cfg,s,id,task);if(candidate!==undefined)expectedIds.push(candidate.id);}
+    const planned=artifacts(cfg,req);if(Object.values(planned).some(hash=>hash===null)||digest(planned)!==digest(readJson(acceptance.path).artifacts))throw Error('Accepted artifacts changed');
+    const knowledge=deliveryKnowledge(cfg,id,cfg.captureEnabled?expectedIds:[]);
+    if(!cfg.captureEnabled)knowledge.status='CAPTURE_DISABLED';
+    return {schemaVersion:1,projectId:cfg.projectId,runId:id,objective:req.objective,mode:req.mode,status:'COMPLETE',nextAction:{type:'DELIVER',actorThreadId:cfg.pmThreadId,taskIds:[]},acceptance,artifacts:planned,knowledge};
+  }finally{s.close();}
+}
 function snapshot(cfg,store,id){
   const run=requireRun(store,cfg,id),tasks=store.tasks(id),mode=JSON.parse(run.request).mode,acceptance=acceptanceSummary(cfg,run),knowledgeCandidates=[],knowledgeIssues=[];
   for(const task of tasks){
