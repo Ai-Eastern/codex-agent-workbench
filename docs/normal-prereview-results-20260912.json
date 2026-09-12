@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "fc0d604e6227e1375e524082964a45580474d163",
+  "scope": "One normal AI content prereview using concrete handoff, generated submit receipt and compact CLI views; observational, not a controlled efficiency benchmark",
+  "sourceHashes": {
+    "src/workflow.mjs": "dfebc983f610e7ce2a7e8e85ffd5dc92eb8b411ed5dae537af5d9f2e54c24020",
+    "src/cli.mjs": "403f8d352eb1f0e0ac5331f21ae382548933756c97edadb13b3b521a708d2ac3",
+    "src/output.mjs": "49b7958f110d8d86d7abf58e12460ec1de01a0b5c801b616a345f15d7e25458a",
+    "src/trace-report.mjs": "e32ffa1496676777636674f1a8f1151422c0e00d4a57dd248a9f8e25ce15e354",
+    "skills/codex-project-workbench/references/handoff.md": "8274ee718477b7e5b76053fdabcf4a337e2cc4fec94493a811759698cf79997f",
+    "skills/codex-project-workbench/references/execution.md": "ebd922a8ff75a9512504f6a0fba8bccae678e680c929266122a20ad1e465fff3",
+    "skills/codex-project-workbench/references/worker.md": "c705b87615942059821b50d8b8e2fcf5f27b8444f316d88a1c5e0f6ab6c9eb2d",
+    "skills/codex-project-workbench/references/cost.md": "7a4a60dca54110844a734d8c125beff58e805aef6cfb72b6448f1bacf85f772d"
+  },
+  "product": {
+    "project": "LianYu",
+    "mode": "direct",
+    "status": "COMPLETE",
+    "engineerCount": 0,
+    "artifactHashes": {
+      ".codex-workbench/training-content-prereview-20260912/内容预审汇总.md": "27c67266b22935e2d83619f68ff7e28a9353dffa9d76aa553cff78a50d9a1442",
+      ".codex-workbench/training-content-prereview-20260912/prereview-results.jsonl": "302d801683bd537e9b3c289ade248b1227ff74ab9dee76f13872a903d5b5a671",
+      ".codex-workbench/training-content-prereview-20260912/revisions/revised-items.jsonl": "2c3542a9b3367d282e8b4e21711089098ab0f3ad38db1c21e9485acad421da88",
+      ".codex-workbench/training-content-prereview-20260912/revisions/source-revision-map.json": "9c2e36f5ea3ef410bfedf06fad4501bb22f2217194533660e646ae66da04f957",
+      ".codex-workbench/training-content-prereview-20260912/knowledge-candidate.json": "48d749524379bfed8c10abd47741ee01ea6f014a98cf0ddcb23b52cf526c52b5"
+    },
+    "formalAcceptanceCount": 1,
+    "formalFailures": 0,
+    "repairAttempts": 0,
+    "knowledgeCaptures": 1,
+    "acceptanceReceiptHash": "097b8d532433fd796e79ed04e77fe2e17d3fa54a34f31029c8342c5610f12ce8",
+    "acceptanceCommandSummaries": [
+      {
+        "id": "content-prereview",
+        "exitCode": 0,
+        "stdout": "{\"status\":\"PASSED\",\"reviewed\":12,\"pass\":7,\"revise\":5,\"humanVerified\":false}\n"
+      }
+    ],
+    "evidenceLevel": "local-command",
+    "humanVerified": false,
+    "selfTestNote": "The same inline content check passed twice in local self-test, then once in formal acceptance. The second self-test did not validate the submit knowledgeCandidate schema. Formal acceptance checks structure, source binding and declared pre-review coverage, not independent correctness of the AI content verdicts."
+  },
+  "dispatch": {
+    "nativeDispatches": 1,
+    "gmTopLevelToolCalls": 2,
+    "gmToolCallsAfterDispatch": 0,
+    "manualReportUsedByCollector": false,
+    "nativeReceiptConfirmed": true
+  },
+  "timing": {
+    "controllerWindowMs": 365193,
+    "phases": [
+      {
+        "state": "PREPARED",
+        "durationMs": 4984
+      },
+      {
+        "state": "RUNNING",
+        "durationMs": 360052
+      },
+      {
+        "state": "ACCEPTING",
+        "durationMs": 90
+      },
+      {
+        "state": "ACCEPTED",
+        "durationMs": 67
+      },
+      {
+        "state": "COMPLETE",
+        "durationMs": 0
+      }
+    ],
+    "formalCommandMs": 86,
+    "taskAttemptCount": 1,
+    "unassociatedEventCount": 0,
+    "pureComputeMs": null,
+    "criticalPathMs": null,
+    "pmBeforePreparedMs": 337058,
+    "pmAfterControllerCompleteMs": 44215,
+    "submitFailureToSuccessReceiptMs": 75482
+  },
+  "cost": {
+    "collectedAt": "2026-09-12T15:23:02.004Z",
+    "actors": [
+      {
+        "role": "maintainer",
+        "phase": "coordination-observation-and-publication",
+        "kind": "framework",
+        "complete": false,
+        "inputTokens": 2887241,
+        "cachedInputTokens": 2826496,
+        "uncachedInputTokens": 60745,
+        "outputTokens": 18876,
+        "totalTokens": 2906117,
+        "turnDurationMs": null
+      },
+      {
+        "role": "GM",
+        "phase": "existing-PM-dispatch",
+        "kind": "management",
+        "complete": true,
+        "inputTokens": 380430,
+        "cachedInputTokens": 251648,
+        "uncachedInputTokens": 128782,
+        "outputTokens": 1238,
+        "totalTokens": 381668,
+        "turnDurationMs": 46298
+      },
+      {
+        "role": "PM",
+        "phase": "content-prereview-and-acceptance",
+        "kind": "product",
+        "complete": true,
+        "inputTokens": 4086471,
+        "cachedInputTokens": 3774720,
+        "uncachedInputTokens": 311751,
+        "outputTokens": 32922,
+        "totalTokens": 4119393,
+        "turnDurationMs": 746466
+      }
+    ],
+    "productAndManagement": {
+      "inputTokens": 4466901,
+      "cachedInputTokens": 4026368,
+      "uncachedInputTokens": 440533,
+      "outputTokens": 34160,
+      "totalTokens": 4501061
+    },
+    "coordinationAndObservationLowerBound": {
+      "inputTokens": 2887241,
+      "cachedInputTokens": 2826496,
+      "uncachedInputTokens": 60745,
+      "outputTokens": 18876,
+      "totalTokens": 2906117
+    },
+    "note": "Root remains active. Later reporting/publishing excluded. Cached input is a subset of input; no subscription currency conversion. Read-only audit subagent usage and later publication are not included in the maintainer lower bound; this is not total end-to-end cost."
+  },
+  "verification": {
+    "receiptHashesVerified": true,
+    "artifactHashesVerified": true,
+    "capturedKnowledgeHashesVerified": true,
+    "frameworkCodeChanged": false,
+    "frameworkTestsRerun": false
+  },
+  "limitations": [
+    "One direct route delivery; not a new multi-agent concurrency experiment.",
+    "Different product tasks and existing context histories prevent a causal speed or token-savings estimate.",
+    "Source preparation and local tests do not constitute human review or model training.",
+    "Compact character counts use JSON.stringify(value,null,2).length including presentation references, not token counts. Short PREPARED output grew."
+  ],
+  "actualUsage": {
+    "generatedReceiptCount": 1,
+    "submittedToolReceipts": 1,
+    "compactOutputs": [
+      {
+        "kind": "search",
+        "form": "compact-search",
+        "needsRead": false,
+        "fullChars": 10169,
+        "shownChars": 3996,
+        "reductionPercent": 60.7
+      },
+      {
+        "kind": "PREPARED",
+        "form": "full",
+        "needsRead": false,
+        "fullChars": 550,
+        "shownChars": 829,
+        "reductionPercent": -50.73
+      },
+      {
+        "kind": "task-packet",
+        "form": "compact-contract",
+        "needsRead": false,
+        "fullChars": 18658,
+        "shownChars": 7150,
+        "reductionPercent": 61.68
+      }
+    ],
+    "formalAcceptanceCount": 1,
+    "originalArtifactsUnchanged": true,
+    "pmBeforePreparedMs": 337058,
+    "pmToolCalls": 40,
+    "pmToolResultCharacters": 156562,
+    "lastPMTool": null,
+    "submitCalls": 2,
+    "submitValidationFailures": 1,
+    "submitSucceeded": 1,
+    "selfTestExecutions": 2,
+    "pmToolsAfterControllerComplete": 4
+  },
+  "issues": [
+    {
+      "code": "KNOWLEDGE_CANDIDATE_SCHEMA",
+      "count": 1,
+      "error": "KNOWLEDGE_INPUT: Invalid knowledgeCandidate field",
+      "recovered": true,
+      "note": "Skill already forbade a caller-supplied source. PM nevertheless supplied it. First submit rejected before writing; PM removed source, used the real validator and resubmitted in the same task attempt. No formal acceptance rerun.",
+      "invalidField": "source",
+      "allowedFields": [
+        "id",
+        "title",
+        "body",
+        "kind",
+        "expectedHash"
+      ],
+      "ruleAlreadyDocumentedAndRead": true
+    },
+    {
+      "code": "POST_COMPLETION_READS",
+      "count": 4,
+      "note": "PM made four memory lookup calls after controller completion; no new product execution."
+    },
+    {
+      "code": "REPEATED_LOCAL_CHECK",
+      "count": 2,
+      "note": "Two local self-check executions preceded the one formal acceptance; count these separately."
+    }
+  ]
+}
