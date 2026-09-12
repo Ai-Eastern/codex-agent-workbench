@@ -29,6 +29,7 @@ test('assignment and results bind each direct repair attempt without duplicate c
 });
 test('native claim and binding retain attempt identity and idempotent binding adds no event',async t=>{
   const cfg=fixture(t,'native');await advance(cfg,'sample');const p=claimNative(cfg,'sample','A'),child='33333333-3333-4333-8333-333333333333';
+  const old=process.env.CODEX_THREAD_ID;process.env.CODEX_THREAD_ID=cfg.pmThreadId;t.after(()=>{if(old===undefined)delete process.env.CODEX_THREAD_ID;else process.env.CODEX_THREAD_ID=old;});
   bindNative(cfg,'sample','A',child);const before=events(cfg);bindNative(cfg,'sample','A',child);assert.deepEqual(events(cfg),before);
   complete(cfg);await advance(cfg,'sample',{commandRunner:passed});
   const es=events(cfg).filter(e=>['task_assigned','native_claim','native_bound','task_result'].includes(e.kind));

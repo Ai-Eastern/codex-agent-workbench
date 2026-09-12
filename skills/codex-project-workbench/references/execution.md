@@ -1,35 +1,24 @@
-# PM 正常执行
+# PM 执行与 CLI 生命周期
 
-`<node>`、`<cli>` 取自 runtime.json；`<project>` 取本次明确配置，否则取项目 AGENTS.md 的登记路径。PowerShell 使用 `& '<node>' '<cli>' ...`；不直接运行占位符。指定配置缺失报 CONFIG_PENDING，不猜上层入口。
+`<node>`、`<cli>` 从安装目录 `runtime.json` 取得；PowerShell 使用 `& '<node>' '<cli>' ...`，不运行占位符。配置缺失报 `CONFIG_PENDING`。
 
-## 选定一种路线
+## 路线
 
-| mode | 适用工作与执行者 | 开始前补读 |
-|---|---|---|
-| direct | 一项有界工作，由当前 PM 完成 | [worker.md](worker.md)，PM 此时也承担实现和交付 |
-| native | 独立、短期的子任务，由真实 Codex 子智能体完成 | [native.md](native.md) |
-| langgraph | 需要桌面接续、依赖或多阶段恢复，使用登记工程师任务 | [desktop.md](desktop.md) |
+`direct` 是当前 PM 完成的一项有界工作；`native` 是真实 Codex 子 Agent 执行的独立短任务；`langgraph` 用于需要桌面接续、依赖或多阶段恢复的登记工程师任务。direct 读 [worker.md](worker.md)，native 读 [native.md](native.md)，LangGraph 读 [desktop.md](desktop.md)。无依赖项目独立开工，不强制 portfolio barrier；显式同步批次仍按 [handoff.md](handoff.md)。
 
-三种路线共用知识包、文件归属和验收标准。工程师登记数量是容量上限，按独立写集与依赖选 0–3 人。模型与档位取明确配置；当前工程师支持 Spark/low、5.5/low、Luna low/medium，已验证范围见仓库记录。若用户仅授权额度不足才换模型，上下文溢出、工具不支持或代码失败均不构成切换理由。原生工具能力在冻结合同前核对。
+## 新入口
 
-## 同一轮推进
+- `begin --project <cfg> --request <req.json> [--view compact]` 用于全新的 direct/native 请求，内部完成 `prepare` + `start`。请求包含 `projectId,id,objective,mode,reason,constraints,tasks,checks`；tasks 为 `{id,objective,files,dependsOn?,constraints?,knowledge?}`，files 是相对 workRoot 的完整独占写集，局部 constraints 明确接口与模块边界；checks 为 `{id,command,args,timeoutMs?}`，使用 argv。重复 begin 只返回已有状态并标 `reused:true`，不返回 packets，也不自动创建或恢复。
+- native 整批 claim 成功时返回 `nextAction: CREATE_NATIVE` 及所有完整 prompt；PM 对每包真实调用 `collaboration.spawn_agent` 一次，禁止重建送达不明的派工。
+- `bind --project <cfg> --run <id> --task <task> --thread <真实UUID>` 保留单条兼容形式；也支持仅使用 `--bindings '{"A":"真实UUID","B":"真实UUID"}'` 一次原子绑定。批量形式不能再带 `--task`/`--thread`；控制器校验 PM 身份、RUNNING 且未暂停，失败不得部分绑定。
+- `finish --project <cfg> --run <id> --task <task> --attempt <attempt> --summary <text> [--candidate <path>] [--output <新delivery.json>]` 仅 direct PM 使用，自动 submit + advance；不能用于 native 叶子或 desktop，不能恢复暂停/失败，也不能覆盖既有回执。错误保留 run；已 submit 后查询状态并沿既有 continue。native 叶子仍 submit，PM 等实际完成后只 continue 一次。
 
-1. 开发前 `search --project <project> --query <需求关键词>`，核对当前项目经验及适用条件；无命中就如实记录，不从聊天记忆编造事实。新任务用 `task.knowledge:{query,ids,limit,maxChars}` 限定相关来源与正文预算；空 ids 明确不检索，默认 BM25，详细策略才读 [knowledge.md](knowledge.md)。知识在 prepare 冻结，不回写旧包。
-   前置检索确认相关知识后，把 IDs 写入该任务合同，避免 prepare 再泛搜。必要规则和关键证据不能为了减少字数而丢弃。
-2. PM 一次明确目标、接口、独占文件、依赖与 checks。请求含 `projectId`、稳定 `id`、`objective`、`mode`、`reason`、`constraints`、`tasks`、`checks`。tasks 为 `{id,objective,files,dependsOn,constraints?}`，局部 constraints 写清提供/引用的接口及不属于本模块的实现；固定文案/枚举使用引号或 JSON 常量。files 相对 workRoot；checks 为 `{id,command,args,timeoutMs}`，使用 argv，不嵌套 shell。新请求 projectId 与明确配置精确匹配；旧合同无此字段则不追写改哈希。
-3. `prepare --project <project> --request <request.json>` 保存计划、预留写集，返回 PREPARED，不派工。目标明确且已获执行授权时同轮 `start --project <project> --run <runId>`；LangGraph 先完成 desktop 预检。原 id 不换需求，不为绕过失败建新合同。
-4. 依据 nextAction 执行。EXECUTE_DIRECT 由 actorThreadId 指向的当前 PM 在本轮实现、必要自测、写 receipt 并 continue；ASSIGNED 不代表后台有人开发。CLAIM_NATIVE/BIND_NATIVE 按 native 入口。只有 WAIT_FOR_WORKERS 才有界等待已派任务。
-   新任务包提供 resultTool 时，使用 `submit --project <project> --run <runId> --task <taskId> --attempt <本次 attemptId> --summary <实际完成内容>` 自动生成回执；不要另跑哈希命令再抄写长 JSON。可选 `--status blocked` 与 `--candidate <知识候选.json>`。attempt 来自当前包，用于拒绝过期提交；身份、独占写集和文件哈希由工具核对。SUBMITTED 只代表回执写入，继续沿原 run 正式验收。
-5. direct/native 交付完成、或 LangGraph 实际任务结束后，沿原 runId `continue`。控制器执行一次集成验收；REPORT_ACCEPTANCE 引用已核验的 acceptance 和 delivery，不另跑相同 checks。保存事实包附 `--output <新的绝对路径.json>`；历史完成运行可 `delivery --project <project> --run <runId>` 复用证据。无需为汇报再读 handoff 全文。
+低级 `prepare`、`start`、`claim`、`submit`、`continue`、`status`、`delivery` 继续作为恢复兼容入口；原 run 不因失败、超时或需求未变而更换。`pause` 停止后续派工。已完成运行用 `delivery` 复用证据，不重跑验收。
 
-`status --project <project> [--run <runId>]` 只查询。`pause --project <project> --run <runId>` 停止后续派工；授权持续工作下的 continue 不增加逐轮人工审批。FAILED/BLOCKED/RESERVED、证据变化或知识保存待处理按 [recovery.md](recovery.md)，不在正常入口猜修复方法。
+## 正常证据链
 
-返回 `continueGate` 时，按 signals 核对既有事件、失败检查和条件变化；重复次数是诊断提醒，不证明根因相同。`advisoryOnly` 不改变 nextAction、暂停或恢复授权，不重置返修预算。已有解除条件与授权满足时按原入口接续，不为提示另开审核、汇报或模型判断轮。未返回该字段也不证明工作高效；内部步骤、Token 剩余额度及无效返工比例未采集，不能猜测。
+开发前用 `search --project <project> --query <关键词>`；知识策略写在 `task.knowledge:{query,ids,limit,maxChars}`，命中后限定 IDs 避免重复泛搜，空 ids 明确不检索，默认 BM25，知识在 prepare 冻结。PM 明确目标、接口、依赖、完整写集和 checks 后，direct/native 用 begin，桌面路线按 desktop 入口。direct 沿用 PM 当前模型并使用 finish；工程师遵循包内模型和 attempt 使用 submit，不伪造身份或把启动命令写成完成。
 
-知识候选随既有工程交付提交，captureEnabled 授予本项目捕获时统一验收后保存；没有该权限只留候选，不重复问保存同一记录。知识保存失败不重做工程验收。新阶段、实际需求变化或 COMPLETE 后已授权的产物变更才新建合同；未完成的失败仍沿原 run 恢复，不能以改文件为由清空失败预算。已变产物不能继续使用旧通过结论。
+direct 的 finish 已包含一次集成验收，成功后直接引用返回的 delivery；native/desktop 由 PM 沿原 run continue 完成验收。输出正式 delivery 使用新的绝对 `--output`。同一产物版本与合同的有效自测和引用直接复用，不为汇报再跑；产物、条件、新失败或证据变化时做必要检查。正式集成命令仍由控制器执行，不能把自测当成已正式验收。候选知识随交付提交；无 capture 权限只留候选，知识保存失败不重跑工程验收。
 
-保存证据直接保存 CLI JSON 文本，不经 PowerShell 多层重新序列化。派工已调用而包装器保存失败时，只读 status/事件并保留保存错误，不能为得到整齐输出重跑 start/continue。
-
-search/start/packet/claim 等较长结果优先加 `--view compact`，默认总展示预算 12,000 字符，可用 `--max-output-chars` 调整。CLI 自动将完整结果保存在 controlRoot/views，并返回路径与哈希；展示预算包含元数据。执行提示保留完整合同，RAG 保留选中的正文和来源引用，完整 source 链在详情中。`needsRead:true` 表示预算内无法完整展示，先读取已保存详情再行动；不要重跑 start/continue 取全文。较短的 status/continue/delivery 通常保留默认输出，避免仅为详情引用增加字数；它们同样支持 compact。`--output` 仍用于保存正式 delivery。摘要保存异常返回 doNotRetry，保留原动作与证据，按原状态处理。
-
-新验收脚本可在写出前调用 `src/check-context.mjs` 的 `requireCheckContext({expectedWorkRoot,expectedOutputRoot})` 核对 cwd 与输出目录，使用返回的 outputRoot。此为误调用保护，不能代替 OS 读取隔离。
+较长的 search/begin/start/packet/claim 结果用 `--view compact`；完整内容由 CLI 保存到 `controlRoot/views` 并返回路径/哈希。`needsRead:true` 时先读详情，不重跑原命令取全文；短状态和完成回执保持默认。直接保存 CLI JSON，不经多层 PowerShell 重序列化；保存失败按 `doNotRetry` 保留原动作和证据。

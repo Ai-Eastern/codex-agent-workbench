@@ -3,7 +3,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {configFrom,readJson,safePath,digest} from './contracts.mjs';
-import {prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,submitResult,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
+import {begin,finish,prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,submitResult,claimNative,bindNative,bindNativeBatch,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
 import {costReport,costDiff} from './cost-report.mjs';
@@ -14,7 +14,8 @@ export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['prepare','preflight','start','continue','submit','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    commands:['begin','finish','prepare','preflight','start','continue','submit','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    lightweight:'begin --request <request.json> for new direct/native work; finish for direct PM submission and acceptance. bind accepts --bindings <JSON taskId-to-childUUID object>.',
     compact:'Add --view compact [--max-output-chars 12000]; full output is saved automatically under controlRoot/views. needsRead requires reading those details before action.',
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
   };
@@ -23,7 +24,7 @@ export async function main(args=process.argv.slice(2)){
   if(opts.view!==undefined&&!['full','compact'].includes(opts.view))throw Error('--view must be full or compact');
   if(opts['max-output-chars']!==undefined&&opts.view!=='compact')throw Error('--max-output-chars requires --view compact');
   if(opts.view!=='compact')return execute(command,opts);
-  if(!['prepare','preflight','start','continue','submit','delivery','status','packet','claim','search'].includes(command))throw Error('Compact view is not supported for this command');
+  if(!['begin','finish','prepare','preflight','start','continue','submit','delivery','status','packet','claim','search'].includes(command))throw Error('Compact view is not supported for this command');
   const maxChars=Number(opts['max-output-chars']??12000);
   if(!Number.isSafeInteger(maxChars)||maxChars<1024||maxChars>1000000)throw Error('--max-output-chars must be 1024 to 1000000');
   if(!opts.project)throw Error('--project /absolute/project.json is required');
@@ -62,9 +63,13 @@ async function execute(command,opts){
     if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.controller.complete};}
     return result;
   }
-  if(opts.output&&['delivery','continue'].includes(command)){
+  if(opts.output&&['delivery','continue','finish'].includes(command)){
     if(!path.isAbsolute(opts.output)||!fs.statSync(path.dirname(opts.output)).isDirectory())throw Error('--output requires an existing absolute parent directory');
     if(fs.existsSync(opts.output))throw Error('--output already exists; preserve it and use status after any completed action');
+  }
+  if(command==='begin'){
+    if(opts.barrier||opts.run||opts.output)throw Error('begin uses a new request only; use start/continue for existing runs or barriers');
+    return begin(cfg,readJson(opts.request));
   }
   if(command==='preflight'){
     const desktop=desktopClient(cfg),entries=Object.entries(cfg.workerThreads);
@@ -90,25 +95,31 @@ async function execute(command,opts){
   if(command==='repair-task')return repairTask(cfg,opts.run,opts.task,{expectedAcceptanceHash:opts['acceptance-hash'],reason:opts.reason});
   if(command==='repair-knowledge')return repairKnowledge(cfg,opts.run,opts.task,{expectedAcceptanceHash:opts['acceptance-hash'],expectedCandidateHash:opts['candidate-hash'],candidate:readJson(opts.candidate),reason:opts.reason});
   if(command==='claim')return claimNative(cfg,opts.run,opts.task);
-  if(command==='bind')return bindNative(cfg,opts.run,opts.task,opts.thread);
+  if(command==='bind'){
+    if(opts.bindings!==undefined){
+      if(opts.task!==undefined||opts.thread!==undefined)throw Error('Use either --bindings or --task/--thread');
+      return bindNativeBatch(cfg,opts.run,JSON.parse(opts.bindings));
+    }
+    return bindNative(cfg,opts.run,opts.task,opts.thread);
+  }
   if(command==='search'||command==='index'||command==='capture'){
     const index=knowledge(cfg);
     try{return command==='search'?index.search(opts.query??'',{maxChars:Number(opts['max-chars']??6000),limit:Number(opts.limit??5),strategy:opts.strategy??'bm25'}):command==='index'?index.sync():index.capture(readJson(opts.candidate));}finally{index.close();}
   }
-  if(command==='start'||command==='continue'){
+  if(command==='start'||command==='continue'||command==='finish'){
     const current=status(cfg,opts.run);
-    const desktop=current.mode==='langgraph'?desktopClient(cfg):undefined;
+    const desktop=current.mode==='langgraph'&&command!=='finish'?desktopClient(cfg):undefined;
     if(opts.barrier){
       if(command!=='start'||current.mode!=='langgraph'||current.status!=='PREPARED')throw Error('Portfolio barrier is only for the initial prepared Desktop dispatch');
       await armPortfolioBarrier(cfg,opts.run,opts.barrier);
     }
-    const result=await advance(cfg,opts.run,{desktop,resume:command==='continue'});
-    if(command==='continue'&&result.nextAction?.type==='REPORT_ACCEPTANCE'){
+    const result=command==='finish'?await finish(cfg,opts.run,opts.task,{expectedAttemptId:opts.attempt,summary:opts.summary,status:opts.status??'done',...(opts.candidate?{knowledgeCandidate:readJson(opts.candidate)}:{})}):await advance(cfg,opts.run,{desktop,resume:command==='continue'});
+    if(command!=='start'&&result.nextAction?.type==='REPORT_ACCEPTANCE'){
       const handoff=delivery(cfg,opts.run),withDelivery={...result,delivery:handoff};
       if(opts.output)fs.writeFileSync(opts.output,JSON.stringify(handoff,null,2)+'\n',{flag:'wx'});
       return withDelivery;
     }
-    if(command==='continue'&&result.packets.length){
+    if(command!=='start'&&result.packets.length){
       const {packets,...summary}=result;
       return {...summary,awaitingResults:packets.map(p=>({taskId:p.taskId,receiptPath:p.receiptPath}))};
     }

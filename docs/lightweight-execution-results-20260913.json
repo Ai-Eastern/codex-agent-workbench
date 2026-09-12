@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "c9f26cdaed7e7f0da7618c0c373bd6927f05f4aa",
+  "scope": "Local implementation and regression checks; no live product or three-project benchmark",
+  "sourceHashes": {
+    "src/cli.mjs": "f79b1fab2af80fb0788ca455fc615f235aabaa8b1214c931590de27fb2f1be6b",
+    "src/workflow.mjs": "424a4872af1b1e8f634112b9b57d9bf5b02f34c0de62d075504045c63639a751",
+    "src/output.mjs": "c11c2251a79abc7a34492db51ac01cf3bb5498bc8679066464c0b9779cad8c51",
+    "src/knowledge.mjs": "38f7792f9719110fb5a30ca83eba151e780666ef72fc8398a914b45a1e826033",
+    "test/lightweight-cli.test.mjs": "62917bf98cb596534f6081e9ab7d499c6849a7027262e47bb03d2552eef52dc2",
+    "test/candidate.test.mjs": "58cfbc0f7d0a0c83e8534282620984760626183f4520b78606815e5b8001c335",
+    "test/workflow.test.mjs": "8ae78c236f5bbfa4fbb780fad78f3c82c7ba8168325def168c42575f1615eefb",
+    "test/task-timing.test.mjs": "0751c3cb4ff17b33afc7780fe1736a09d0bc78b281d12e266763f5d9c8c99474"
+  },
+  "test": {
+    "tests": 155,
+    "passed": 154,
+    "failed": 0,
+    "skipped": 1,
+    "durationMs": 3760.0142,
+    "outputHash": "e7d3410b4dc88c7d71f7abc44709e92441a6d4cb11386b802ba0df8d94194beb",
+    "newLifecycleTests": 10,
+    "reviewPauseRaceReproducedAndFixed": true
+  },
+  "skill": {
+    "installed": true,
+    "files": [
+      {
+        "file": "SKILL.md",
+        "before": "7d5b8e32d6d90ea0e008baa1922b6c6ae011d3af4598490afa5d6304f56234a1",
+        "after": "f50ed0d8dce8d1543c8a48ff5d718be59e6d01064537bc2d5ceaad910fd6d1db"
+      },
+      {
+        "file": "references/execution.md",
+        "before": "ebd922a8ff75a9512504f6a0fba8bccae678e680c929266122a20ad1e465fff3",
+        "after": "d45a674a2a99cebde29108ed14869563e11cb7e7d393730513cb6f183c2c2fa6"
+      },
+      {
+        "file": "references/native.md",
+        "before": "73a213a2c167238ed1803635afca23ebef874a59bffe23332490e29df888fa8a",
+        "after": "5688f9856a3e01eb94381cd256c1b330050dfb9dc96d63e2c278a08c9deeec09"
+      },
+      {
+        "file": "references/handoff.md",
+        "before": "8274ee718477b7e5b76053fdabcf4a337e2cc4fec94493a811759698cf79997f",
+        "after": "a7cbf45d2fb7940006cdc323af7f0b40a1cea582e8e32fb5959f7f4f94e0dee2"
+      },
+      {
+        "file": "references/worker.md",
+        "before": "c705b87615942059821b50d8b8e2fcf5f27b8444f316d88a1c5e0f6ab6c9eb2d",
+        "after": "4156416df531fc5ac6b54dbd52d90f537d5094b67e71fe6af402976ed137aaa3"
+      }
+    ],
+    "runtimeUnchanged": true,
+    "sourceValidatorPassed": true,
+    "installedValidatorPassed": true,
+    "characterUnit": "Unicode code points after CRLF normalization, not tokens",
+    "characterCounts": [
+      {
+        "file": "SKILL.md",
+        "beforeCharacters": 1915,
+        "afterCharacters": 1692
+      },
+      {
+        "file": "references/execution.md",
+        "beforeCharacters": 3341,
+        "afterCharacters": 2332
+      },
+      {
+        "file": "references/native.md",
+        "beforeCharacters": 632,
+        "afterCharacters": 665
+      },
+      {
+        "file": "references/handoff.md",
+        "beforeCharacters": 2021,
+        "afterCharacters": 978
+      },
+      {
+        "file": "references/worker.md",
+        "beforeCharacters": 1197,
+        "afterCharacters": 835
+      }
+    ]
+  },
+  "protocolOperations": {
+    "scope": "Structural PM controller CLI operations; excludes search, contract authoring, real native creation/wait, worker submit, tests and recovery",
+    "direct": {
+      "before": 4,
+      "after": 2
+    },
+    "nativeThreeBatchBind": {
+      "before": 9,
+      "after": 3
+    },
+    "nativeThreeIndividualBind": {
+      "before": 9,
+      "after": 5
+    }
+  },
+  "limitations": [
+    "Underlying StateGraph and existing SQLite state remain.",
+    "Native child UUID authenticity still requires the original creation receipt; binding does not independently verify creation.",
+    "Native tests use fixture identities, not live Codex agent creation.",
+    "No current end-to-end latency, token, quality or productivity gains measured.",
+    "Existing conversation histories are not cleared; installed rules need reading on the next execution."
+  ]
+}

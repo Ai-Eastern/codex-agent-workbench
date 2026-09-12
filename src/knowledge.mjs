@@ -40,9 +40,13 @@ export function validateKnowledgeCandidate(candidate) {
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate) || Object.getPrototypeOf(candidate) !== Object.prototype) {
     fail('KNOWLEDGE_INPUT', 'knowledgeCandidate must be an object');
   }
-  const allowed = new Set(['id', 'title', 'body', 'kind', 'expectedHash']);
+  const allowedFields = ['id', 'title', 'body', 'kind', 'expectedHash'];
+  const allowed = new Set(allowedFields);
   for (const key of Reflect.ownKeys(candidate)) {
-    if (typeof key !== 'string' || !allowed.has(key)) fail('KNOWLEDGE_INPUT', 'Invalid knowledgeCandidate field');
+    if (typeof key !== 'string' || !allowed.has(key)) {
+      const field = typeof key === 'string' ? JSON.stringify(key) : '(symbol)';
+      fail('KNOWLEDGE_INPUT', `Invalid knowledgeCandidate field ${field}; allowed fields: ${allowedFields.join(', ')}. source is bound by the controller.`);
+    }
   }
   return captureFields(candidate);
 }

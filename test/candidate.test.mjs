@@ -46,10 +46,17 @@ test('knowledge candidates reject non-object shapes and empty required fields', 
 test('knowledge candidates reject source injection and unknown fields', () => {
   assert.throws(() => validateKnowledgeCandidate({
     id: 'lesson-1', title: 'Lesson', body: 'Body', kind: 'solution', source: { runId: 'fake', taskId: 'fake', evidence: [] },
-  }), { code: 'KNOWLEDGE_INPUT' });
+  }), error => error.code === 'KNOWLEDGE_INPUT'
+    && error.message.includes('"source"')
+    && error.message.includes('allowed fields: id, title, body, kind, expectedHash')
+    && error.message.includes('source is bound by the controller')
+    && !error.message.includes('fake'));
   assert.throws(() => validateKnowledgeCandidate({
     id: 'lesson-1', title: 'Lesson', body: 'Body', kind: 'solution', extra: true,
-  }), { code: 'KNOWLEDGE_INPUT' });
+  }), error => error.code === 'KNOWLEDGE_INPUT' && error.message.includes('"extra"') && error.message.includes('allowed fields:'));
+  assert.throws(() => validateKnowledgeCandidate({
+    id: 'lesson-1', title: 'Lesson', body: 'Body', kind: 'solution', [Symbol('secret')]: true,
+  }), error => error.code === 'KNOWLEDGE_INPUT' && error.message.includes('(symbol)') && !error.message.includes('secret'));
 });
 
 test('valid knowledge candidates return a clean copy without mutating input', () => {

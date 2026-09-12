@@ -1,5 +1,5 @@
-const contractCommands=new Set(['start','packet','claim']);
-const ordinaryCommands=new Set(['status','continue','delivery','index','capture']);
+const contractCommands=new Set(['begin','start','packet','claim']);
+const ordinaryCommands=new Set(['status','continue','finish','delivery','index','capture']);
 const ordinaryKeys=['projectId','runId','mode','status','phase','reason','nextAction','continueGate','acceptance','knowledgeIssues'];
 const jsonSize=value=>JSON.stringify(value,null,2).length;
 const reference=(detailsPath,detailsHash,form)=>({form,detailsPath,detailsHash,detailsAvailable:true});
@@ -27,6 +27,7 @@ export function compactOutput(command,result,{detailsPath,detailsHash,maxChars=1
     const full=marked({value:result},detailsPath,detailsHash,'full');return jsonSize(full)<=maxChars?full:referenceOnly({},detailsPath,detailsHash,maxChars);
   }
   if(contractCommands.has(command)){
+    if(command==='begin'&&result.reused===true)return compactOutput('status',result,{detailsPath,detailsHash,maxChars});
     const packetList=Array.isArray(result.packets)?result.packets:null,completePackets=packetList?.length>0&&packetList.every(p=>typeof p?.prompt==='string'&&p.prompt.length>0),completeSingle=!packetList&&typeof result.prompt==='string'&&result.prompt.length>0;
     if(command==='start'&&packetList!==null&&!packetList.length)return compactOutput('status',result,{detailsPath,detailsHash,maxChars});
     if(!(packetList?completePackets:completeSingle))return referenceOnly(result,detailsPath,detailsHash,maxChars);

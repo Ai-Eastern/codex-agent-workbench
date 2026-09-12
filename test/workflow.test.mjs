@@ -11,6 +11,7 @@ function fixture(t){
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'workbench-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const cfg={projectId:'fixture',projectRoot:root,controlRoot:path.join(root,'control'),workRoot:path.join(root,'work'),vaultRoot:path.join(root,'knowledge'),maxWorkers:3,model:'gpt-5.5',thinking:'low',captureEnabled:true,pmThreadId:'11111111-1111-4111-8111-111111111111',workerThreads:{A:'22222222-2222-4222-8222-222222222222',B:'33333333-3333-4333-8333-333333333333',C:'44444444-4444-4444-8444-444444444444'}};
+  const old=process.env.CODEX_THREAD_ID;process.env.CODEX_THREAD_ID=cfg.pmThreadId;t.after(()=>{if(old===undefined)delete process.env.CODEX_THREAD_ID;else process.env.CODEX_THREAD_ID=old;});
   fs.mkdirSync(cfg.workRoot,{recursive:true});
   return cfg;
 }
@@ -118,7 +119,8 @@ test('Luna medium survives configuration, all route packets and native claim pro
     prepare(cfg,request(run,mode));
     const p=getPacket(cfg,run,'A');
     assert.equal(p.model,'gpt-5.6-luna');assert.equal(p.thinking,'medium');
-    assert.match(promptFor(p),/gpt-5\.6-luna\/medium/);
+    if(mode==='direct')assert.match(promptFor(p),/PM，沿用当前指定模型与推理档位/);
+    else assert.match(promptFor(p),/gpt-5\.6-luna\/medium/);
     assert.throws(()=>status({...cfg,thinking:'low'},run),/configuration changed/);
     if(mode==='native'){
       await advance(cfg,run);
@@ -127,7 +129,8 @@ test('Luna medium survives configuration, all route packets and native claim pro
     writeJson(file,{...cfg,thinking:'ultra'});
     assert.throws(()=>configFrom(file),/profile/);
     const legacy={...p,model:'gpt-5.5'};delete legacy.thinking;
-    assert.match(promptFor(legacy),/gpt-5\.5\/low/);
+    if(mode==='direct')assert.match(promptFor(legacy),/PM，沿用当前指定模型与推理档位/);
+    else assert.match(promptFor(legacy),/gpt-5\.5\/low/);
   }
 });
 
