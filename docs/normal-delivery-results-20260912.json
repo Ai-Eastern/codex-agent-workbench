@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "be180e49743333a1689f756e228345aa44f2bdf2",
+  "scope": "One normal offline delivery after removal of duplicate GM reporting; observational, not a controlled efficiency benchmark",
+  "sourceHashes": {
+    "src/workflow.mjs": "53c03039917c1cc28499f6f9e92f0a28d506f456d27411d31044648635831d3b",
+    "src/trace-report.mjs": "e32ffa1496676777636674f1a8f1151422c0e00d4a57dd248a9f8e25ce15e354",
+    "skills/codex-project-workbench/references/handoff.md": "627a6924daf2ea8b8f6f3887fbc5fe911eb510658eccd46213cedd4310f7dda0",
+    "skills/codex-project-workbench/references/cost.md": "7a4a60dca54110844a734d8c125beff58e805aef6cfb72b6448f1bacf85f772d"
+  },
+  "product": {
+    "project": "LianYu",
+    "mode": "direct",
+    "status": "COMPLETE",
+    "engineerCount": 0,
+    "artifactHashes": {
+      ".codex-workbench/training-human-review-packet-20260912/build-review-packet.mjs": "af10a090f8147ee0c4bf0eac7cff5ef168c77cc6e3362702dfa6aaa3c91391d2",
+      ".codex-workbench/training-human-review-packet-20260912/test-review-packet.mjs": "3c8399c8fdc01be4b818c15608f291ce3d4970634723a82b484688a8ffaaa4a4",
+      ".codex-workbench/training-human-review-packet-20260912/README.md": "b52a0454be49a484392b6983a73a3fbf5703ff8a8c287c22db52b252b2799bcd",
+      ".codex-workbench/training-human-review-packet-20260912/output/review-items.jsonl": "138451bb2ec02f9ae165d2d360a2fb2170dc356198c0ee6e9c8013eec4ea2cda",
+      ".codex-workbench/training-human-review-packet-20260912/output/manifest.json": "3d893c1aab035492d39e1f922496657bc56fe553cf2ee0dbdc5d612ab1a05a5d"
+    },
+    "formalAcceptanceCount": 1,
+    "formalFailures": 0,
+    "repairAttempts": 0,
+    "knowledgeCaptures": 1,
+    "acceptanceReceiptHash": "2bc912d40938039cc009bb43b04b7be9d3b817591235134c7697918ddb1b9472",
+    "acceptanceCommandSummaries": [
+      {
+        "id": "human-review-packet",
+        "exitCode": 0,
+        "stdout": "{\"status\":\"PASSED\",\"checks\":[\"twelve-item-six-plus-six-review-queue\",\"all-human-fields-pending\",\"strategy-and-source-fidelity\",\"positive-negative-isolation\",\"deterministic-byte-output\",\"read-only-input-hashes\",\"non-empty-output-protection\",\"invalid-input-rejection\"],\"reviewItems\":12,\"pending\":12,\"humanVerified\":false,\"trained\":false}\n"
+      }
+    ],
+    "evidenceLevel": "local-command",
+    "humanVerified": false,
+    "selfTestNote": "Initial test failed because implementation was not created. After implementation the full eight-category suite passed in self-test, then the same suite passed once in formal controller acceptance. These are separate executions; no additional formal acceptance or repair attempt."
+  },
+  "dispatch": {
+    "nativeDispatches": 1,
+    "gmTopLevelToolCalls": 2,
+    "gmToolCallsAfterDispatch": 0,
+    "manualReportUsedByCollector": false,
+    "nativeReceiptConfirmed": true,
+    "pmLastToolWasContinueWithDelivery": true
+  },
+  "timing": {
+    "controllerWindowMs": 251154,
+    "phases": [
+      {
+        "state": "PREPARED",
+        "durationMs": 5653
+      },
+      {
+        "state": "RUNNING",
+        "durationMs": 245374
+      },
+      {
+        "state": "ACCEPTING",
+        "durationMs": 85
+      },
+      {
+        "state": "ACCEPTED",
+        "durationMs": 42
+      },
+      {
+        "state": "COMPLETE",
+        "durationMs": 0
+      }
+    ],
+    "formalCommandMs": 82,
+    "taskAttemptCount": 1,
+    "unassociatedEventCount": 0,
+    "pureComputeMs": null,
+    "criticalPathMs": null,
+    "pmBeforePreparedMs": 279038,
+    "pmAfterControllerCompleteMs": 6572,
+    "gmAfterNativeReceiptMs": 3786
+  },
+  "cost": {
+    "collectedAt": "2026-09-12T14:13:59.922Z",
+    "actors": [
+      {
+        "role": "maintainer",
+        "phase": "coordination-observation-and-publication",
+        "kind": "framework",
+        "complete": false,
+        "inputTokens": 1790756,
+        "cachedInputTokens": 1724800,
+        "uncachedInputTokens": 65956,
+        "outputTokens": 18800,
+        "totalTokens": 1809556,
+        "turnDurationMs": null
+      },
+      {
+        "role": "GM",
+        "phase": "existing-PM-dispatch",
+        "kind": "management",
+        "complete": true,
+        "inputTokens": 367688,
+        "cachedInputTokens": 243200,
+        "uncachedInputTokens": 124488,
+        "outputTokens": 1585,
+        "totalTokens": 369273,
+        "turnDurationMs": 69706
+      },
+      {
+        "role": "PM",
+        "phase": "normal-offline-delivery",
+        "kind": "product",
+        "complete": true,
+        "inputTokens": 3548155,
+        "cachedInputTokens": 3336704,
+        "uncachedInputTokens": 211451,
+        "outputTokens": 22991,
+        "totalTokens": 3571146,
+        "turnDurationMs": 536764
+      }
+    ],
+    "productAndManagement": {
+      "inputTokens": 3915843,
+      "cachedInputTokens": 3579904,
+      "uncachedInputTokens": 335939,
+      "outputTokens": 24576,
+      "totalTokens": 3940419
+    },
+    "coordinationAndObservationLowerBound": {
+      "inputTokens": 1790756,
+      "cachedInputTokens": 1724800,
+      "uncachedInputTokens": 65956,
+      "outputTokens": 18800,
+      "totalTokens": 1809556
+    },
+    "note": "Root remains active. Later reporting/publishing excluded. Cached input is a subset of input; no subscription currency conversion."
+  },
+  "verification": {
+    "receiptHashesVerified": true,
+    "artifactHashesVerified": true,
+    "capturedKnowledgeHashesVerified": true,
+    "frameworkCodeChanged": false,
+    "frameworkTestsRerun": false
+  },
+  "limitations": [
+    "One direct route delivery; not a new multi-agent concurrency experiment.",
+    "Different product tasks and existing context histories prevent a causal speed or token-savings estimate.",
+    "Source preparation and local tests do not constitute human review or model training."
+  ],
+  "knowledge": {
+    "searchCalls": 1,
+    "returnedNotes": 5,
+    "defaultBackend": "FTS5/BM25",
+    "priorAnnotationAndNegativeIsolationKnowledgeReturned": true,
+    "capturedNotes": 1,
+    "scope": "Existing project-scoped retrieval and capture; not a new retrieval benchmark"
+  },
+  "activity": {
+    "GM": {
+      "toolCalls": 2,
+      "toolResults": 3,
+      "toolResultCharacters": 5970,
+      "byTool": {
+        "exec": 2
+      }
+    },
+    "PM": {
+      "toolCalls": 18,
+      "toolResults": 19,
+      "toolResultCharacters": 107846,
+      "byTool": {
+        "exec": 18
+      }
+    },
+    "maintainer": {
+      "toolCalls": 23,
+      "toolResults": 22,
+      "toolResultCharacters": 78394,
+      "byTool": {
+        "exec": 20,
+        "wait": 3
+      }
+    },
+    "meaning": "Top-level tool wrappers and returned characters, not nested tool calls or token attribution"
+  }
+}
