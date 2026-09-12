@@ -303,20 +303,24 @@ export function createKnowledge({ projectId, vaultRoot, indexPath, sourceRoot } 
 
   return {
     sync() { return locked(syncInside); },
-    search(query, { limit = 5, maxChars = 6000 } = {}) {
+    search(query, { limit = 5, maxChars = 6000, ids } = {}) {
       if (typeof query !== 'string' || query.length > 2048) fail('KNOWLEDGE_LIMIT', 'Query must be a string of at most 2048 characters');
       if (!Number.isInteger(limit) || limit < 1 || limit > 50 || !Number.isInteger(maxChars) || maxChars < 0 || maxChars > 100000) {
         fail('KNOWLEDGE_LIMIT', 'limit must be 1 to 50; maxChars must be 0 to 100000');
+      }
+      if (ids !== undefined && (!Array.isArray(ids) || ids.length > 50 || ids.some(id => typeof id !== 'string' || !id.trim() || id.length > 200 || /[\x00-\x1f\x7f]/u.test(id)))) {
+        fail('KNOWLEDGE_INPUT', 'Invalid knowledge IDs');
       }
       return locked(() => {
         // ponytail: hash-scan the bounded vault on each query; add a watcher only after measured need.
         syncInside();
         const terms = [...new Set(tokens(query))].slice(0, 128);
         const result = { projectId, query, items: [], chars: 0 };
-        if (!terms.length || !maxChars) return result;
+        if (!terms.length || !maxChars || ids?.length === 0) return result;
         const match = terms.map(term => `"${term.replaceAll('"', '""')}"`).join(' OR ');
+        const scope = ids === undefined ? '' : ` AND d.id IN (${ids.map(() => '?').join(',')})`;
         const rows = db.prepare(`SELECT d.* FROM knowledge_fts f JOIN knowledge_documents d ON d.id=f.id
-          WHERE knowledge_fts MATCH ? ORDER BY bm25(knowledge_fts,0,5,1),d.path LIMIT ?`).all(match, limit);
+          WHERE knowledge_fts MATCH ?${scope} ORDER BY bm25(knowledge_fts,0,5,1),d.path LIMIT ?`).all(match, ...(ids ?? []), limit);
         for (const row of rows) {
           const text = row.text.slice(0, maxChars - result.chars);
           if (!text) break;

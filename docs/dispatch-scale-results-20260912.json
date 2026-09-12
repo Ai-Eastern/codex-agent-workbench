@@ -1,0 +1,123 @@
+{
+  "date": "2026-09-12",
+  "profiles": {
+    "pm": "gpt-5.6-sol/high",
+    "engineer": "gpt-5.6-luna/medium"
+  },
+  "stages": [
+    {
+      "batch": "dispatch-126-optimized-20260912",
+      "passed": true,
+      "scope": "bounded-synthetic-code",
+      "projects": 2,
+      "engineers": 6,
+      "peakConcurrency": 6,
+      "fullOverlapMs": 12966,
+      "roleElapsedSeconds": 195.496,
+      "checks": 45,
+      "explicitEngineerRepairs": 0,
+      "tokenTelemetry": {
+        "PM": {
+          "complete": true,
+          "input_tokens": 3413715,
+          "cached_input_tokens": 3369344,
+          "output_tokens": 15101,
+          "reasoning_output_tokens": 3125,
+          "total_tokens": 3428816
+        },
+        "engineer": {
+          "complete": true,
+          "input_tokens": 3131638,
+          "cached_input_tokens": 2814720,
+          "output_tokens": 11006,
+          "reasoning_output_tokens": 2591,
+          "total_tokens": 3142644
+        }
+      },
+      "totalTokens": 6571460,
+      "noncachedInput": 361289,
+      "output": 26107,
+      "evidenceSha256": "cf635473a14b1766bf0b8eb478f972cd35bd31c5ffc8600e7f4c410a65f0a94f"
+    },
+    {
+      "batch": "dispatch-139-20260912",
+      "passed": true,
+      "scope": "bounded-synthetic-code",
+      "projects": 3,
+      "engineers": 9,
+      "peakConcurrency": 6,
+      "fullOverlapMs": 0,
+      "roleElapsedSeconds": 595.859,
+      "checks": 67,
+      "explicitEngineerRepairs": 1,
+      "tokenTelemetry": {
+        "PM": {
+          "complete": true,
+          "input_tokens": 4631065,
+          "cached_input_tokens": 4562944,
+          "output_tokens": 24274,
+          "reasoning_output_tokens": 8783,
+          "total_tokens": 4655339
+        },
+        "engineer": {
+          "complete": true,
+          "input_tokens": 3970845,
+          "cached_input_tokens": 3862784,
+          "output_tokens": 16599,
+          "reasoning_output_tokens": 3336,
+          "total_tokens": 3987444
+        }
+      },
+      "totalTokens": 8642783,
+      "noncachedInput": 176182,
+      "output": 40873,
+      "evidenceSha256": "392de1e708a136d7296c905063a124fbc13239b7b23a44275c64e2ccc342f8cd"
+    },
+    {
+      "batch": "dispatch-139-knowledge-20260912",
+      "passed": true,
+      "scope": "knowledge-delivery",
+      "projects": 3,
+      "engineers": 9,
+      "peakConcurrency": 9,
+      "fullOverlapMs": 22529,
+      "roleElapsedSeconds": 152.731,
+      "checks": 9,
+      "explicitEngineerRepairs": 0,
+      "tokenTelemetry": {
+        "PM": {
+          "complete": true,
+          "input_tokens": 4212297,
+          "cached_input_tokens": 4170496,
+          "output_tokens": 13898,
+          "reasoning_output_tokens": 2115,
+          "total_tokens": 4226195
+        },
+        "engineer": {
+          "complete": true,
+          "input_tokens": 4575812,
+          "cached_input_tokens": 4476672,
+          "output_tokens": 22992,
+          "reasoning_output_tokens": 4056,
+          "total_tokens": 4598804
+        }
+      },
+      "totalTokens": 8824999,
+      "noncachedInput": 140941,
+      "output": 36890,
+      "evidenceSha256": "0bfb2f61a1a72dbaac8b0a8b5525a55788a4da030baa0996aba86fd47959cad9"
+    }
+  ],
+  "rag": {
+    "captured": 9,
+    "retrieved": 9,
+    "evidenceSha256": "47e93df4cbeedd0e9167b23502b1169750424e9bc32aecd43bc8e81063981336"
+  },
+  "usageMethod": "Unique response_id records summed per turn_id and reconciled with the final turn_token_usage; all current PM and engineer turns complete. Original cumulative event-counter lower-bound reports preserved separately.",
+  "limitations": [
+    "bounded synthetic and knowledge deliveries, not production acceptance",
+    "no valid causal efficiency ranking or RAG ablation",
+    "root/setup/repair/research costs reported separately",
+    "telemetry is not subscription usage or a bill"
+  ]
+}

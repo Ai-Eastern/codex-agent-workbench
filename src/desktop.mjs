@@ -3,17 +3,48 @@
 import net from 'node:net';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
+import os from 'node:os';
+import {DatabaseSync} from 'node:sqlite';
 
-function decode(raw){
-  if(raw?.success!==true||raw.isError)throw Error('Desktop acknowledgement rejected');
+export function sanitizeErrorDetail(value){
+  return String(value??'').replace(/\bBearer\s+[^\s,;]+/gi,'Bearer [redacted]').replace(/\bsk-[A-Za-z0-9_-]+/g,'[redacted]').replace(/[\w.+-]+:\/\/[^\s]+/gi,'[redacted]').replace(/((?:token|secret|password|api[_-]?key))\s*[:=]\s*[^\s,;]+/gi,'$1=[redacted]').slice(0,600);
+}
+function rejected(raw){
+  const code=sanitizeErrorDetail(raw?.code||raw?.error?.code||'DESKTOP_ACK_REJECTED');
+  const reason=sanitizeErrorDetail(raw?.reason||raw?.error?.reason);
+  const message=sanitizeErrorDetail(raw?.message||raw?.error?.message||'Desktop acknowledgement rejected')||'Desktop acknowledgement rejected';
+  const e=Error(message); e.code=code; e.delivery='UNCONFIRMED_DO_NOT_RETRY'; if(reason)e.reason=reason; throw e;
+}
+export function decode(raw){
+  if(raw?.success!==true||raw.isError)rejected(raw);
   let result=raw.structuredContent;
   if(result===undefined){
     const text=(raw.contentItems??raw.content??[]).filter(c=>['text','inputText'].includes(c.type)).map(c=>c.text).join('\n');
-    if(text){try{result=JSON.parse(text);}catch{result={text};}}
+    if(text){try{result=JSON.parse(text);}catch{throw Object.assign(Error('Invalid Desktop acknowledgement'),{code:'MALFORMED_ACK',delivery:'UNCONFIRMED_DO_NOT_RETRY'});}}
   }
   result??=raw;
-  if(result.isError||result.success===false)throw Error('Desktop operation rejected');
+  if(result.isError||result.success===false)rejected(result);
   return result;
+}
+function statePath(cfg){return cfg.desktopStatePath||(process.env.CODEX_HOME?path.join(process.env.CODEX_HOME,'state_5.sqlite'):path.join(os.homedir(),'.codex','state_5.sqlite'));}
+function comparableCwd(value){
+  let v=String(value);
+  if(/^\\\\\?\\UNC\\/i.test(v))v='\\\\'+v.slice(8);
+  else if(/^\\\\\?\\/i.test(v))v=v.slice(4);
+  return path.win32.normalize(v).replace(/[\\/]+$/,'').toLowerCase();
+}
+export function readThreadState(cfg,id){
+  const file=statePath(cfg);
+  let d; try{d=new DatabaseSync(file,{readOnly:true});}catch{throw Object.assign(Error(`Codex state database unavailable: ${file}`),{code:'STATE_DB_UNAVAILABLE',delivery:'NOT_SENT'});}
+  try{
+    let row; try{row=d.prepare('SELECT id,cwd,archived FROM threads WHERE id = ?').get(id);}catch{throw Object.assign(Error('Codex state database has no readable threads table'),{code:'STATE_SCHEMA_UNAVAILABLE',delivery:'NOT_SENT'});}
+    if(!row)throw Object.assign(Error(`Codex thread not found: ${id}`),{code:'THREAD_NOT_FOUND',delivery:'NOT_SENT'});
+    if(typeof row.cwd!=='string'||comparableCwd(row.cwd)!==comparableCwd(cfg.projectRoot))throw Object.assign(Error('Desktop task belongs to a different or unverified project'),{code:'THREAD_CWD_MISMATCH',delivery:'NOT_SENT'});
+    if(![0,1,false,true].includes(row.archived))throw Object.assign(Error(`Codex thread archive state is unavailable: ${id}`),{code:'THREAD_ARCHIVE_UNKNOWN',delivery:'NOT_SENT'});
+    const archived=row.archived===1||row.archived===true;
+    if(archived)throw Object.assign(Error(`Codex thread is archived: ${id}`),{code:'THREAD_ARCHIVED',delivery:'NOT_SENT'});
+    return {id,cwd:row.cwd,archived:false,availabilityEvidence:{fields:'threads.id,threads.cwd,threads.archived',observedAt:new Date().toISOString(),statePath:file}};
+  }finally{d.close();}
 }
 export function desktopClient(cfg){
   const caller=process.env.CODEX_THREAD_ID,pipe=process.env.CODEX_APP_TOOLS_PIPE_PATH;
@@ -43,7 +74,7 @@ export function desktopClient(cfg){
           let res;try{res=JSON.parse(buffer.subarray(4,4+size));}catch{return finish(Error('Invalid Desktop JSON'));}
           buffer=buffer.subarray(4+size);
           if(res.id!==id)continue;
-          if(res.error||!Object.hasOwn(res,'result'))return finish(Error('Desktop RPC rejected'));
+          if(res.error||!Object.hasOwn(res,'result'))return finish(null,{success:false,...(res.error||{}),code:res.error?.code||'DESKTOP_RPC_REJECTED'});
           finish(null,res.result);
         }
       });
@@ -51,12 +82,16 @@ export function desktopClient(cfg){
   }
   return {
     async read(id){
+      const local=readThreadState(cfg,id);
       const r=await call('read_thread',{threadId:id,hostId:'local',turnLimit:1,includeOutputs:false,maxOutputCharsPerItem:1000});
       if(r.thread?.id!==id)throw Error('Desktop returned mismatched identity');
-      if(typeof r.thread.cwd!=='string'||path.resolve(r.thread.cwd).toLowerCase()!==path.resolve(cfg.projectRoot).toLowerCase())throw Error('Desktop task belongs to a different or unverified project');
+      if(typeof r.thread.cwd!=='string'||comparableCwd(r.thread.cwd)!==comparableCwd(cfg.projectRoot))throw Error('Desktop task belongs to a different or unverified project');
       const turn=r.page?.order==='newest_first'?r.turns?.[0]:undefined;
-      return {id,cwd:r.thread.cwd,status:r.thread.status?.type,turnId:turn?.id,turnStatus:turn?.status};
+      return {...local,status:r.thread.status?.type,turnId:turn?.id,turnStatus:turn?.status};
     },
-    send:(id,prompt)=>call('send_message_to_thread',{threadId:id,hostId:'local',prompt,model:cfg.model,thinking:cfg.thinking})
+    async send(id,prompt){
+      readThreadState(cfg,id);
+      return call('send_message_to_thread',{threadId:id,hostId:'local',prompt,model:cfg.model,thinking:cfg.thinking});
+    }
   };
 }

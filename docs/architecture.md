@@ -35,10 +35,11 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 | [src/cli.mjs](../src/cli.mjs) | 唯一命令入口，路由到准备、执行、查询、知识或多项目摘要 |
 | [src/workflow.mjs](../src/workflow.mjs) | 冻结任务包、文件预留、状态图、接收结果、独立验收和 capture |
 | [src/desktop.mjs](../src/desktop.mjs) | 通过当前 Desktop 内部 pipe 读取和派送已登记任务 |
+| [src/portfolio-barrier.mjs](../src/portfolio-barrier.mjs) | 冻结跨项目身份，收集有期限 ready，单次 release 后各 PM 派工 |
 | [src/knowledge.mjs](../src/knowledge.mjs) | 授权 Markdown 扫描、中文词项、FTS5/BM25、证据哈希、去重和冲突保护 |
 | [skills/codex-project-workbench](../skills/codex-project-workbench/SKILL.md) | PM 和工程师在 Codex 中遵守的使用约定 |
 
-项目配置中的 `projectRoot` 是授权项目根目录，`workRoot` 指向本批工作文件范围，`controlRoot` 保存运行数据，`vaultRoot` 保存项目知识；三者必须在项目根目录内并满足隔离约定。公开模板为 [examples/project.example.json](../examples/project.example.json)，真实路径和任务映射由本机项目 `AGENTS.md` 指向。
+项目配置中的 `projectRoot` 是授权项目根目录，`workRoot` 指向本批工作文件范围，`controlRoot` 保存运行数据，二者始终位于项目根目录内。`vaultRoot` 默认也在项目内；用户明确授权既有 Obsidian 库中的项目子目录后，可设置与 `vaultRoot` 精确相同的绝对路径 `externalVaultRoot`。仅扫描该子目录，仍拒绝符号链接与 junction。此配置是知识访问范围约定，不是桌面工具的读取沙箱。公开模板为 [examples/project.example.json](../examples/project.example.json)，真实路径和任务映射由本机项目 `AGENTS.md` 指向。
 
 | 数据 | 位置 | 性质 |
 | --- | --- | --- |
@@ -49,9 +50,11 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 | 恢复前历史 | `controlRoot/runs/<runId>/history/` | 原失败证据；返修同时保存旧任务包及回执，不覆盖首次失败 |
 | 知识保存回执 | `controlRoot/runs/<runId>/knowledge-receipt.json` | capture 结果 |
 | Markdown 笔记 | `vaultRoot` 下的 `.md` | 知识原文，可用 Obsidian 阅读和人工编辑 |
-| 全文索引 | `controlRoot/knowledge.sqlite` | 派生缓存，可以从 Markdown 重建 |
+| 全文索引 | `controlRoot/<knowledgeIndexFile>`，默认 `knowledge.sqlite` | 派生缓存，可以从 Markdown 重建；仅接受 `knowledge[-小写字母数字或连字符].sqlite` 文件名 |
 
 真实项目配置、任务 UUID、完整运行数据、账号材料和私人正文留在本机控制目录或忽略的 `.local` 中，不进入 Git。安装后的 Skill `runtime.json` 只提供本机仓库、Node、CLI 和登记表入口，不替代项目配置。
+
+迁移知识目录前核对没有未完成任务，保存原配置、Markdown 和来源清单，备份放在检索根外。更换 `vaultRoot` 会改变运行身份和知识索引身份，因此使用新的 `knowledgeIndexFile` 重建缓存；不得改写历史身份或复用旧缓存。`state.sqlite`、任务包和验收记录保留原位，历史 run 使用原配置只读查询，新任务使用当前配置。迁移后 Obsidian 和 RAG 共用同一份 Markdown，不做双向复制。
 
 ## 一次任务如何推进
 
@@ -64,6 +67,10 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 请求和任务包在本次 run 中冻结。恢复优先使用原合同、包和真实产物；发现关键知识或需求已变化时，由 PM 明确处理新阶段，不能悄悄替换历史合同。已完成且产物未变的 run 复用验收结果。
 
 ## 恢复和停止边界
+
+跨项目需要统一启动时，总协调者冻结项目/run/PM/配置身份，各真实 PM 预检并在同一轮调用带 `--barrier` 的 start。控制器登记 ready 后有界等待，总协调核对全组合同与预检，再调用 `release-portfolio` 一次。所有项目就绪前不派工；过期、重复放行、身份变化或失活 ready 均拒绝。此为应用层启动协调，不是跨进程事务或全组同时执行保证：放行后任一工程师状态仍可能改变，实际并发从任务起止时间计算。
+
+`reconcile-dispatch` 仅恢复明确证实未送达的首波不确定消息，保存原失败和 attempt，入口本身不发送；接续派发前仍须检查冻结基线。`repair-blocked-task` 仅重派独立组中明确 BLOCKED 的一项，其他项必须 DONE、尚未集成；以已接受回执和产物哈希保护完成项，与单任务 repair 共享一次预算。旧记录没有所需证据时拒绝恢复，不回填历史。具体参数和适用条件见 [执行入口](../skills/codex-project-workbench/references/execution.md)。
 
 | 状态或情况 | 行为 |
 | --- | --- |
@@ -94,10 +101,10 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 
 ## 接入约束与尚未验证的能力
 
-桌面适配器校验真实 PM 身份、已登记目标、项目目录和当前 pipe。它只使用限定的读取及发送能力，协议依赖当前 Codex Desktop 版本，未成为稳定公共服务 API。当前版本已完成一个现有项目的真实接入验证，不能推导所有桌面版本可用，详见 [验证报告](verification.md)。
+桌面适配器校验真实 PM 身份、已登记目标、项目目录、明确未归档状态和当前 pipe。它只使用限定的读取及发送能力，协议依赖当前 Codex Desktop 版本，未成为稳定公共服务 API。已完成三个现有项目的有界接入验证，不能推导所有桌面版本可用，详见 [本轮报告](dispatch-scale-results-20260912.md)。
 
 native 的 `claim` / `bind` 记录领取与身份关系，但 UUID 格式校验不证明创建真实发生。PM 必须保留真实工具创建回执；工具只返回协调名称时，应从实际子任务取得真实 UUID 后绑定，不伪造身份或改环境变量。
 
-路径穿越、symlink/junction、冲突写入和知识单写锁在应用层处理；工程师的独占写集也通过合同约束。当前没有 OS 沙箱，也未证明可以抵御恶意并发文件系统置换。尚无全自主生产或多项目规模实测，命令验收不等于 GUI、设备、服务、真实数据或用户验收。
+路径穿越、symlink/junction、冲突写入和知识单写锁在应用层处理；工程师的独占写集也通过合同约束。当前没有 OS 沙箱，也未证明可以抵御恶意并发文件系统置换。已有三项目有界规模实测，尚无全自主生产证明；命令验收不等于 GUI、设备、服务、真实数据或用户验收。
 
 返回 [README](../README.md)，或查看 [执行方式比较](comparison.md)。

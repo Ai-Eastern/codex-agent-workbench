@@ -37,17 +37,32 @@ export function ownedPath(cfg,relative){
   }
   return full;
 }
+export function knowledgeIndexPath(cfg){
+  const name=cfg.knowledgeIndexFile??'knowledge.sqlite';
+  if(typeof name!=='string'||!/^knowledge(?:-[a-z0-9-]+)?\.sqlite$/.test(name))throw Error('Invalid knowledgeIndexFile');
+  return safePath(cfg.controlRoot,name);
+}
 export function configFrom(file){
   const cfg=readJson(file);
   if(!/^[a-z0-9][a-z0-9-]{0,63}$/.test(cfg.projectId??''))throw Error('Invalid projectId');
-  for(const key of ['projectRoot','controlRoot','workRoot','vaultRoot']){
+  for(const key of ['projectRoot','controlRoot','workRoot']){
     if(!path.isAbsolute(cfg[key]??''))throw Error(`Absolute ${key} required`);
     cfg[key]=path.resolve(cfg[key]);assertContained(cfg.projectRoot,cfg[key]);
   }
+  if(!path.isAbsolute(cfg.vaultRoot??''))throw Error('Absolute vaultRoot required');
+  cfg.vaultRoot=path.resolve(cfg.vaultRoot);
+  // An explicit exact-directory grant permits a project subfolder in an existing Obsidian vault.
+  if(cfg.externalVaultRoot!==undefined){
+    if(!path.isAbsolute(cfg.externalVaultRoot)||path.resolve(cfg.externalVaultRoot)!==cfg.vaultRoot)throw Error('externalVaultRoot must exactly match vaultRoot');
+    cfg.externalVaultRoot=path.resolve(cfg.externalVaultRoot);
+    assertContained(cfg.externalVaultRoot,cfg.vaultRoot);
+  }else assertContained(cfg.projectRoot,cfg.vaultRoot);
+  cfg.knowledgeIndexFile??='knowledge.sqlite';
+  knowledgeIndexPath(cfg);
   if(cfg.workRoot===cfg.controlRoot||cfg.workRoot===cfg.vaultRoot||cfg.vaultRoot===cfg.controlRoot)throw Error('Use separate work, control and knowledge directories');
   if(!Number.isInteger(cfg.maxWorkers)||cfg.maxWorkers<1||cfg.maxWorkers>12)throw Error('maxWorkers must be 1..12');
   cfg.model??='gpt-5.5';cfg.thinking??='low';
-  if(!['gpt-5.3-codex-spark','gpt-5.5'].includes(cfg.model)||cfg.thinking!=='low')throw Error('Supported live profiles are gpt-5.3-codex-spark/low and gpt-5.5/low');
+  if(!(['gpt-5.3-codex-spark','gpt-5.5'].includes(cfg.model)&&cfg.thinking==='low')&&!(cfg.model==='gpt-5.6-luna'&&['low','medium'].includes(cfg.thinking)))throw Error('Supported live profiles: gpt-5.3-codex-spark/low, gpt-5.5/low, gpt-5.6-luna/low or medium');
   cfg.workerThreads??={};
   const ids=Object.values(cfg.workerThreads);
   const uuid=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;
@@ -65,6 +80,14 @@ export function validateRequest(value,cfg){
     if(!/^[A-Za-z0-9_-]{1,40}$/.test(task.id??'')||ids.has(task.id)||!task.objective?.trim())throw Error('Unique task IDs and objectives required');
     ids.add(task.id);task.dependsOn??=[];
     if(task.constraints!==undefined&&(!Array.isArray(task.constraints)||task.constraints.some(x=>typeof x!=='string')))throw Error('Task constraints must describe local module responsibilities and interfaces');
+    if(task.knowledge!==undefined){
+      const k=task.knowledge;
+      if(!k||typeof k!=='object'||Array.isArray(k)||Object.keys(k).some(key=>!['query','ids','limit','maxChars'].includes(key)))throw Error('Invalid task knowledge policy');
+      if(k.query!==undefined&&(typeof k.query!=='string'||k.query.length>2048))throw Error('Invalid task knowledge query');
+      if(k.ids!==undefined&&(!Array.isArray(k.ids)||k.ids.length>50||k.ids.some(id=>typeof id!=='string'||!id.trim()||id.length>200||/[\x00-\x1f\x7f]/u.test(id))))throw Error('Invalid task knowledge IDs');
+      if(k.limit!==undefined&&(!Number.isInteger(k.limit)||k.limit<1||k.limit>50))throw Error('Invalid task knowledge limit');
+      if(k.maxChars!==undefined&&(!Number.isInteger(k.maxChars)||k.maxChars<0||k.maxChars>100000))throw Error('Invalid task knowledge maxChars');
+    }
     if(!Array.isArray(task.dependsOn)||new Set(task.dependsOn).size!==task.dependsOn.length)throw Error('Invalid dependencies');
     if(!Array.isArray(task.files)||!task.files.length)throw Error('Exact file ownership required');
     for(const name of task.files){

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {prepare,advance,status,pause,getPacket,knowledge,claimNative,bindNative} from '../src/workflow.mjs';
+import {prepare,advance,status,pause,getPacket,knowledge,claimNative,bindNative,promptFor} from '../src/workflow.mjs';
 import {writeJson,digest,validateRequest,configFrom} from '../src/contracts.mjs';
 import {main as cliMain} from '../src/cli.mjs';
 
@@ -38,8 +38,8 @@ test('direct retrieves project knowledge, validates commands and reuses complete
 test('DAG dispatch has a whole-batch barrier and no redispatch across graph invocations',async t=>{
   const cfg=fixture(t),req=request('dag','langgraph');
   req.tasks=[{id:'A',objective:'A',files:['a.mjs']},{id:'B',objective:'B',files:['b.mjs']},{id:'C',objective:'C',files:['normalize.mjs'],dependsOn:['A','B']}];
-  const sent=[],heads=new Map(Object.values(cfg.workerThreads).map(id=>[id,{id,status:'idle',turnId:'before',turnStatus:'completed'}]));
-  const desktop={read:async id=>heads.get(id),send:async(id)=>{const role=Object.keys(cfg.workerThreads).find(k=>cfg.workerThreads[k]===id);sent.push(role);complete(cfg,'dag',role);heads.set(id,{id,status:'idle',turnId:`after-${role}`,turnStatus:'completed'});return {ok:true};}};
+  const sent=[],heads=new Map(Object.values(cfg.workerThreads).map(id=>[id,{id,archived:false,status:'idle',turnId:'before',turnStatus:'completed'}]));
+  const desktop={read:async id=>heads.get(id),send:async(id)=>{const role=Object.keys(cfg.workerThreads).find(k=>cfg.workerThreads[k]===id);sent.push(role);complete(cfg,'dag',role);heads.set(id,{id,archived:false,status:'idle',turnId:`after-${role}`,turnStatus:'completed'});return {ok:true};}};
   prepare(cfg,req);await advance(cfg,'dag',{desktop});assert.deepEqual(sent,['A','B']);
   await advance(cfg,'dag',{desktop});assert.deepEqual(sent,['A','B','C']);
   assert.equal((await advance(cfg,'dag',{desktop})).status,'COMPLETE');
@@ -48,12 +48,12 @@ test('DAG dispatch has a whole-batch barrier and no redispatch across graph invo
 test('busy engineer blocks the entire first batch',async t=>{
   const cfg=fixture(t),req=request('busy','langgraph');req.tasks.push({id:'B',objective:'B',files:['b.mjs']});
   prepare(cfg,req);let sent=0;
-  const desktop={read:async id=>({id,status:id===cfg.workerThreads.B?'active':'idle',turnId:'head',turnStatus:id===cfg.workerThreads.B?'inProgress':'completed'}),send:async()=>sent++};
+  const desktop={read:async id=>({id,archived:false,status:id===cfg.workerThreads.B?'active':'idle',turnId:'head',turnStatus:id===cfg.workerThreads.B?'inProgress':'completed'}),send:async()=>sent++};
   await assert.rejects(advance(cfg,'busy',{desktop}),/busy/);assert.equal(sent,0);
 });
 test('ambiguous delivery remains blocked and cannot silently retry',async t=>{
   const cfg=fixture(t);prepare(cfg,request('unknown','langgraph'));let sent=0;
-  const desktop={read:async id=>({id,status:'idle',turnId:'head',turnStatus:'completed'}),send:async()=>{sent++;throw Object.assign(Error('lost reply'),{delivery:'UNCONFIRMED_DO_NOT_RETRY'});}};
+  const desktop={read:async id=>({id,archived:false,status:'idle',turnId:'head',turnStatus:'completed'}),send:async()=>{sent++;throw Object.assign(Error('lost reply'),{delivery:'UNCONFIRMED_DO_NOT_RETRY'});}};
   assert.equal((await advance(cfg,'unknown',{desktop})).status,'BLOCKED');
   await advance(cfg,'unknown',{desktop,resume:true});assert.equal(sent,1);
 });
@@ -110,6 +110,27 @@ test('explicit Spark profile reaches task packets without silently replacing the
   writeJson(file,{...cfg,model:'unapproved-model'});
   assert.throws(()=>configFrom(file),/profile/);
 });
+test('Luna medium survives configuration, all route packets and native claim prompts',async t=>{
+  for(const mode of ['direct','native','langgraph']){
+    const base=fixture(t),file=path.join(base.projectRoot,'project.json');
+    writeJson(file,{...base,model:'gpt-5.6-luna',thinking:'medium'});
+    const cfg=configFrom(file),run=`luna-${mode}`;
+    prepare(cfg,request(run,mode));
+    const p=getPacket(cfg,run,'A');
+    assert.equal(p.model,'gpt-5.6-luna');assert.equal(p.thinking,'medium');
+    assert.match(promptFor(p),/gpt-5\.6-luna\/medium/);
+    assert.throws(()=>status({...cfg,thinking:'low'},run),/configuration changed/);
+    if(mode==='native'){
+      await advance(cfg,run);
+      assert.match(claimNative(cfg,run,'A').prompt,/gpt-5\.6-luna\/medium/);
+    }
+    writeJson(file,{...cfg,thinking:'ultra'});
+    assert.throws(()=>configFrom(file),/profile/);
+    const legacy={...p,model:'gpt-5.5'};delete legacy.thinking;
+    assert.match(promptFor(legacy),/gpt-5\.5\/low/);
+  }
+});
+
 test('status and waiting continuation keep task context out of repeated summaries',async t=>{
   const cfg=fixture(t),file=path.join(cfg.projectRoot,'project.json');writeJson(file,cfg);
   prepare(cfg,request('bounded-status'));await advance(cfg,'bounded-status');

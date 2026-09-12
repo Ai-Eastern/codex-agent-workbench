@@ -26,7 +26,7 @@
 
 ## 项目知识与 Obsidian
 
-- 每个项目显式登记 `vaultRoot`。这个 Markdown 目录可以作为独立 Obsidian Vault 打开；普通人工笔记也可检索，不要求改写 frontmatter。
+- 每个项目显式登记 `vaultRoot`，可作为独立 Obsidian Vault 打开，也可在用户授权后通过 `externalVaultRoot` 接入既有 Vault 内的一个项目子目录。Obsidian 与 RAG 共用 Markdown；索引和任务状态留在项目目录。普通人工笔记也可检索，不要求添加 frontmatter。
 - SQLite FTS5/BM25 加 Unicode 词项和汉字 bigram 提供 **lexical RAG**。当前没有 embedding、向量库或语义检索。
 - `prepare` 根据项目目标和子任务目标检索，冻结带来源路径、哈希的上下文。新知识不会悄悄修改已经发出的任务包，也不会自动缩短既有聊天历史。
 - `captureEnabled=true` 时，工程师在原交付中附知识候选，控制器在验收后校验证据并保存。稳定 ID 去重；更新已变更的笔记需要当前 `expectedHash`，避免覆盖人工修改。
@@ -36,7 +36,7 @@
 
 ## 安装与入口
 
-技术栈为 **Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。可显式配置 `gpt-5.3-codex-spark/low` 或 `gpt-5.5/low`；首次真实三路线验证使用 5.5。Spark 的完整流程验证状态单独记录在 [Spark 测试记录](docs/spark-e2e.md)，不把配置支持当作完整兼容证明。
+技术栈为 **Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。当前三项目桌面验证使用 **PM：gpt-5.6-sol/high，工程师：gpt-5.6-luna/medium**；跨项目总经理按用户配置使用 gpt-6-astra/ultra。仍支持先前 Spark/low 与 5.5/low 配置，历史验证分别记录，不把配置支持当作完整兼容证明。
 
 在仓库目录中安装依赖和 Skill：
 
@@ -89,7 +89,11 @@ $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 
 本地合成测试已覆盖知识重建、中文检索、项目与路径隔离、冲突及证据失效，以及任务合同、状态恢复和验收行为。测试数量、执行命令、版本和真实接入证据统一记录在 [验证报告](docs/verification.md)，README 不固定测试数量。
 
-2026-09-11 已在一个现有项目中跑通 `direct`、真实原生子 Agent 和桌面工程师 A/B → C 三条路线，完成命令验收、经验回写及无旧聊天上下文的新任务检索验证。完成状态重入没有再次派工或执行验收。联调只使用隔离的小型代码任务，尚未验证真实业务交付和多项目规模。
+2026-09-11 已在一个现有项目中跑通 `direct`、真实原生子 Agent 和桌面工程师 A/B → C 三条路线，完成命令验收、经验回写及无旧聊天上下文的新任务检索验证。完成状态重入没有再次派工或执行验收。该阶段为小型代码任务。
+
+2026-09-12 完成 [多项目调度、RAG 与成本报告](docs/dispatch-scale-results-20260912.md)：双项目真实峰值 6 人、45 项合同检查通过；三项目编码批次在一次定点返修后通过 67 项检查，峰值仍为 6；随后统一放行的知识交付达到真实 9 人并发、重叠 22.529 秒，9 条知识自动写入 Obsidian 并重新检索通过。这验证了有界任务的 1-2-6／1-3-9 调度能力，尚未证明九人生产编码提速。三位工程师是每项目容量上限，PM 按任务使用 0–3 人；小任务仍走 direct/native。
+
+本轮补齐未归档状态预检、保留证据的派送恢复、只返修失败任务、跨项目 ready/release 和按任务限定知识范围。每个项目复用控制器的唯一集成验收结果。报告同时列出全部 PM／工程师 Token、首次失败及维护成本，不能据此推导固定节省比例。
 
 随后按用户指定模型开展 [Spark 完整流程测试](docs/spark-e2e.md)：真实发现上下文中断、业务与契约遗漏，并补充摘要输出、保留证据的验收接续及单任务返修入口。测试明确记录维护介入、首次失败和未验证范围，不将跑通样例等同于无人介入成功或固定提速。
 
@@ -105,11 +109,12 @@ $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 
 桌面适配器依赖当前 Codex 版本的内部 pipe 和工具回执格式，不是已承诺稳定的公共 API；必须在登记的真实 PM 任务内运行。原生子 Agent 的创建身份同样需要真实工具回执，不能仅凭本地结果文件确认。
 
-当前文件归属、路径检查与写锁属于应用层控制，未实现操作系统沙箱；没有语义向量检索、全自主生产运行保证或多项目规模实测。自动化测试、真实桌面任务结束、GUI 验收和用户验收是不同证据，不能相互代替。
+当前文件归属、路径检查与写锁属于应用层控制，未实现操作系统沙箱；没有语义向量检索或全自主生产运行保证。多项目证据限于上述有界合同与知识交付；自动化测试、真实桌面任务结束、GUI 验收和用户验收是不同证据，不能相互代替。
 
 ## 进一步阅读
 
 - [与旧 PM–TL 链、单 Agent、原生子 Agent 的比较](docs/comparison.md)
+- [本轮规模验证与完整成本口径](docs/dispatch-scale-results-20260912.md)、[Ruflo 只读评估](docs/ruflo-assessment-20260912.md)
 - [架构、数据流与恢复边界](docs/architecture.md)
 - [Skill 入口](skills/codex-project-workbench/SKILL.md)、[工程师交付格式](skills/codex-project-workbench/references/worker.md)
 - [复用与许可证依据](docs/reuse-decision.md)、[实现契约](docs/implementation-contract.md)
