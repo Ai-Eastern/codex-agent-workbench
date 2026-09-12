@@ -16,3 +16,9 @@ uses stable project knowledge IDs, Unicode Chinese terms, normalized rank
 scores, and bounded candidate sets. It omits AgentDB, embeddings, English
 prompt templates, recency decay and session round-robin. Source validation
 and Markdown/index ownership remain local Workbench code.
+
+The Skill's role/mode/state routing also borrows the always-present constitution
+and selectively loaded shards pattern from
+[`v3/@claude-flow/guidance/src/retriever.ts`](https://github.com/ruvnet/ruflo/blob/39e0b0540c9b018174955fc8a21f355bbac26c6a/v3/@claude-flow/guidance/src/retriever.ts)
+at the same pinned commit. This is a design adaptation in local Markdown rules;
+no Guidance package code, hash embeddings or intent classifier is imported.

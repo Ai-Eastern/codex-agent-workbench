@@ -118,6 +118,7 @@ $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 - [Ruflo 成本模块全量评估与实际复用](docs/ruflo-cost-assessment-20260912.md)、[恋语真实任务的成本与耗时分账](docs/ruflo-real-task-cost-20260912.md)：显式 turn 采集、零基线比较，定位长上下文和管理开销。
 - [阶段交接优化的真实结果](docs/stage-handoff-results-20260912.md)：短交接、同轮派工和自动 delivery 已用于下一项恋语开发；分别呈现原始 token、非缓存输入与一次性设置成本。
 - [SmartRetrieval 中文适配与同库对照](docs/smart-retrieval-results-20260912.md)：完成显式候选入口，15 道可回答题的必要证据覆盖由 15/15 降至 14/15，未达到采用标准，正式默认保留 BM25。
+- [Guidance 规则按需加载](docs/guidance-results-20260912.md)：已更新 Skill，工程师规则材料减少约 26%，PM 正常流程约 41%–46%；保留首次问题、修正验证和建设成本，不将字符量下降当成整体开发提速。
 - [架构、数据流与恢复边界](docs/architecture.md)
 - [Skill 入口](skills/codex-project-workbench/SKILL.md)、[工程师交付格式](skills/codex-project-workbench/references/worker.md)
 - [复用与许可证依据](docs/reuse-decision.md)、[实现契约](docs/implementation-contract.md)

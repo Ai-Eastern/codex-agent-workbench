@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "517a3af0d36bbec89e05e3e84a39265f30543300",
+  "adopted": true,
+  "adoptionScope": "Installed Skill rule loading only; no runtime or dispatch code changed; productivity not measured",
+  "material": {
+    "schemaVersion": 1,
+    "unit": "Unicode code points; CRLF normalized to LF; not tokens",
+    "scope": "documented unique-file read plans; same synthetic engineer prompt included where consumed; not observed latency or full conversation usage",
+    "excluded": "runtime/project AGENTS, system instructions, tool wrappers, task data outside fixed prompt, existing history and optional project-specific rules",
+    "dispatchHash": "7b515ec52b4d21035f620bb5bdc1d974a75ab753ed7749434c413c3be8632c66",
+    "checks": {
+      "recoveryVerbatim": true,
+      "portfolioVerbatim": true,
+      "existingWorkerPreserved": true,
+      "knowledgeCostUnchanged": true,
+      "linksResolve": true
+    },
+    "sourceHashes": {
+      "before": {
+        "SKILL.md": "4c673e1b263f8c31e7a83f517430bf3799bc5ea9d5717df227a006de326b59c8",
+        "references/cost.md": "3fe973dcb6628989ad0e4843488c24d070af9ea78942b416b9048fdc10d0a3ab",
+        "references/execution.md": "301c0fab28cba5776796d4742bf8b0367aae5a1d594488d13f082e5669a67095",
+        "references/handoff.md": "cf73753089852d7f234d7b72f18b9984c3b7dfcb9c541447dc5f44eb57147d69",
+        "references/knowledge.md": "0494cc8872c4d52102fd3366ce17b1f31161755dca7760045201e4ffdf099b1b",
+        "references/worker.md": "c790e58ced2646886b1db720ac8563c154ca43050b69beab534bc9f3deae8431"
+      },
+      "after": {
+        "SKILL.md": "7d5b8e32d6d90ea0e008baa1922b6c6ae011d3af4598490afa5d6304f56234a1",
+        "references/cost.md": "3fe973dcb6628989ad0e4843488c24d070af9ea78942b416b9048fdc10d0a3ab",
+        "references/desktop.md": "3bcfa49627887b2cd36a12f889653c8538e1d069ee3778ad901567f0b48c8812",
+        "references/execution.md": "c6cd476d7dd7c0a1c2a536229105d417b3146bd631ce24aed74ceda3146e1c3e",
+        "references/handoff.md": "1f8e76a958ff29bc5c256bcce6bfe3b578f96b5f208852b37af3217d10878e91",
+        "references/knowledge.md": "0494cc8872c4d52102fd3366ce17b1f31161755dca7760045201e4ffdf099b1b",
+        "references/native.md": "73a213a2c167238ed1803635afca23ebef874a59bffe23332490e29df888fa8a",
+        "references/recovery.md": "49008135b99ea4b9173645dcbcf7bee18f2d649d5929f493473371bb5def54dd",
+        "references/worker.md": "55e478bf7e3a9b5918a06431b8fdab1a4b80f0626637b7b5fd270b7f5b2bbdcc"
+      }
+    },
+    "profiles": [
+      {
+        "role": "engineer",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/worker.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 4104,
+          "unchangedDispatchChars": 969,
+          "totalChars": 5073
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/worker.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 2807,
+          "unchangedDispatchChars": 969,
+          "totalChars": 3776
+        },
+        "changeChars": -1297,
+        "reductionPercent": 25.57
+      },
+      {
+        "role": "pm-direct",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md",
+            "references/worker.md"
+          ],
+          "reads": 3,
+          "normalizedRuleChars": 9594,
+          "unchangedDispatchChars": 969,
+          "totalChars": 10563
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md",
+            "references/worker.md"
+          ],
+          "reads": 3,
+          "normalizedRuleChars": 5218,
+          "unchangedDispatchChars": 969,
+          "totalChars": 6187
+        },
+        "changeChars": -4376,
+        "reductionPercent": 41.43
+      },
+      {
+        "role": "pm-native",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 8812,
+          "unchangedDispatchChars": 0,
+          "totalChars": 8812
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md",
+            "references/native.md"
+          ],
+          "reads": 3,
+          "normalizedRuleChars": 4958,
+          "unchangedDispatchChars": 0,
+          "totalChars": 4958
+        },
+        "changeChars": -3854,
+        "reductionPercent": 43.74
+      },
+      {
+        "role": "pm-langgraph",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 8812,
+          "unchangedDispatchChars": 0,
+          "totalChars": 8812
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md",
+            "references/desktop.md"
+          ],
+          "reads": 3,
+          "normalizedRuleChars": 4791,
+          "unchangedDispatchChars": 0,
+          "totalChars": 4791
+        },
+        "changeChars": -4021,
+        "reductionPercent": 45.63
+      },
+      {
+        "role": "gm-handoff",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/handoff.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 4418,
+          "unchangedDispatchChars": 0,
+          "totalChars": 4418
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/handoff.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 3400,
+          "unchangedDispatchChars": 0,
+          "totalChars": 3400
+        },
+        "changeChars": -1018,
+        "reductionPercent": 23.04
+      },
+      {
+        "role": "pm-langgraph-then-recovery",
+        "before": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md"
+          ],
+          "reads": 2,
+          "normalizedRuleChars": 8812,
+          "unchangedDispatchChars": 0,
+          "totalChars": 8812
+        },
+        "after": {
+          "files": [
+            "SKILL.md",
+            "references/execution.md",
+            "references/desktop.md",
+            "references/recovery.md"
+          ],
+          "reads": 4,
+          "normalizedRuleChars": 7576,
+          "unchangedDispatchChars": 0,
+          "totalChars": 7576
+        },
+        "changeChars": -1236,
+        "reductionPercent": 14.03
+      }
+    ]
+  },
+  "validation": {
+    "model": "gpt-5.6-luna",
+    "thinking": "medium",
+    "pmInitialCorrectDecisions": 9,
+    "pmScenarios": 10,
+    "pmInitialIssue": "runtime location misread; unrelated cwd scanned",
+    "pmCorrection": "corrected answer initially read old installation; final updated installation and CLI/registry existence checked",
+    "engineerFunctionCases": 10,
+    "engineerInjectionIgnored": true,
+    "engineerDependenciesUnchanged": true,
+    "engineerInitialIssues": [
+      "done receipt written before self-test",
+      "first Windows ESM absolute-path import failed; file URL rerun passed"
+    ],
+    "engineerCorrection": "new independent receipt-order probe checks exit code before writing success; original code and receipt retained",
+    "independentRuleReview": "no blocking defect; static scope",
+    "recoveryOriginalTextPreserved": true,
+    "installationFilesMatched": 9,
+    "installationRuntimeUnchanged": true
+  },
+  "constructionCost": {
+    "collectedAt": "2026-09-12T07:52:58.827Z",
+    "complete": false,
+    "limitation": "Maintainer turn incomplete at cutoff; one-time construction including failures and corrections; not task-level before/after saving",
+    "actors": [
+      {
+        "phase": "guidance-adaptation-and-reporting",
+        "complete": false,
+        "inputTokens": 2648708,
+        "cachedInputTokens": 2536064,
+        "uncachedInputTokens": 112644,
+        "outputTokens": 31994,
+        "totalTokens": 2680702
+      },
+      {
+        "phase": "rule-review",
+        "complete": true,
+        "inputTokens": 383409,
+        "cachedInputTokens": 337152,
+        "uncachedInputTokens": 46257,
+        "outputTokens": 4772,
+        "totalTokens": 388181
+      },
+      {
+        "phase": "engineer-probe-and-correction",
+        "complete": true,
+        "inputTokens": 388525,
+        "cachedInputTokens": 374016,
+        "uncachedInputTokens": 14509,
+        "outputTokens": 3052,
+        "totalTokens": 391577
+      },
+      {
+        "phase": "pm-probe-and-installation-check",
+        "complete": true,
+        "inputTokens": 347355,
+        "cachedInputTokens": 327424,
+        "uncachedInputTokens": 19931,
+        "outputTokens": 3529,
+        "totalTokens": 350884
+      }
+    ],
+    "totals": {
+      "inputTokens": 3767997,
+      "cachedInputTokens": 3574656,
+      "uncachedInputTokens": 193341,
+      "outputTokens": 43347,
+      "totalTokens": 3811344
+    }
+  }
+}
