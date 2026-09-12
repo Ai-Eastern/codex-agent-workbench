@@ -28,3 +28,11 @@ node <runtime.cli> cost-diff --baseline <absolute-before.json> --current <absolu
 分别标记一次性框架建设、调查、总经理选题/交接、产品开发与返工。一个 turn 同时做实施、检索和验收时保留组合阶段；工具回执字符数不是 token，工具包装器计数不代表内部全部工具次数。不要凭阶段名字估算精确工具 token 或把它称为模型计算时间。当前报告者自身尚未结束，报告必须注明截点。
 
 相同任务、基线、模型、知识条件和验收口径的成组实验才能讨论路线优势。单次真实任务可以定位观测成本与长上下文重复输入，不能从不同任务的快照差异推导 LangGraph 节省百分比。
+
+需要定位阶段耗时时，由统计负责人按需读取指定 run 的既有记录：
+
+```text
+node <runtime.cli> trace-report --project <original-project-config> --run <run-id> --output <new-absolute-trace.json>
+```
+
+可选 `--cost-report <existing-absolute-cost-report.json>` 附加原 manifest 的 turn 区间，不自动绑定到该 run，也不重新核实原会话日志。跨任务时钟未经核实，合并墙钟与并发数保持未知。控制器的 RUNNING 包含执行和等待，不能称为纯编码耗时；验收命令时间只来自哈希绑定的最后回执。未结束区间、暂停时长、真实工程师开工时间和关键路径不猜测。此命令只读、不派工、不重跑验收、不调用模型；不加入每轮固定汇报流程。

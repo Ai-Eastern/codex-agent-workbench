@@ -6,12 +6,13 @@ import {prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPa
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
 import {costReport,costDiff} from './cost-report.mjs';
+import {traceReport} from './trace-report.mjs';
 
 export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['prepare','preflight','start','continue','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff'],
+    commands:['prepare','preflight','start','continue','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
   };
   const command=args.shift(),opts={};
@@ -28,6 +29,11 @@ export async function main(args=process.argv.slice(2)){
   }
   if(!opts.project)throw Error('--project /absolute/project.json is required');
   const cfg=configFrom(path.resolve(opts.project));
+  if(command==='trace-report'){
+    const result=traceReport(cfg,opts.run,{cost:opts['cost-report']?readJson(opts['cost-report']):undefined});
+    if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.controller.complete};}
+    return result;
+  }
   if(opts.output&&['delivery','continue'].includes(command)){
     if(!path.isAbsolute(opts.output)||!fs.statSync(path.dirname(opts.output)).isDirectory())throw Error('--output requires an existing absolute parent directory');
     if(fs.existsSync(opts.output))throw Error('--output already exists; preserve it and use status after any completed action');

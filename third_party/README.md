@@ -28,3 +28,12 @@ no Guidance package code, hash embeddings or intent classifier is imported.
 at the same pinned MIT revision. The local implementation reads existing run
 events and emits advisory signals only; no upstream class, thresholds, token
 slope computation, automatic pause or checkpoint history is copied.
+
+`src/trace-report.mjs` borrows the trace timeline and bottleneck interpretation
+approach from
+[`plugins/ruflo-observability/skills/observe-trace/SKILL.md`](https://github.com/ruvnet/ruflo/blob/39e0b0540c9b018174955fc8a21f355bbac26c6a/plugins/ruflo-observability/skills/observe-trace/SKILL.md)
+at the same pinned MIT revision. No upstream executable code is copied. The
+local read-only report uses existing controller events and bound acceptance
+receipts, with separately supplied cost telemetry. It does not import a trace
+collector, memory service, synthesis model, p95 threshold or critical-path
+algorithm without the required span evidence.

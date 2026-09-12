@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "0994749e194d8b6c394ae26b4d526ec9c7d7cdfd",
+  "adopted": true,
+  "scope": "opt-in read-only controller trace and independent reported-turn supplement",
+  "sourceHashes": {
+    "src/trace-report.mjs": "3e22990b1f798c5ce465e5ac79d78aed810b64e103de0cacf320bfe17a00c3e6",
+    "src/cli.mjs": "9ab24b741afbbabe123d3b77a97585e5e673c2a355a3a0f615565b887b81a8a9",
+    "test/trace-report.test.mjs": "c135a9ef11e7df687dc7dd164c8caa16df18f3b57ed9b958831bdfdfbe92e8a1",
+    "skills/codex-project-workbench/references/cost.md": "0515c802427d8a372e687318a2a5f35081cbd5d9f2899b01530945f75de154ce"
+  },
+  "verification": {
+    "focusedTests": 6,
+    "fullSuite": {
+      "tests": 122,
+      "passed": 121,
+      "failed": 0,
+      "skipped": 1,
+      "durationMs": 3597.8536
+    },
+    "historicalRunStateUnchanged": true,
+    "installedCostReferenceMatches": true,
+    "runtimeUnchanged": true
+  },
+  "historicalSample": {
+    "project": "LianYu",
+    "controller": {
+      "complete": true,
+      "observedWindowMs": 130646,
+      "phases": [
+        {
+          "state": "PREPARED",
+          "label": "准备记录建立后待启动",
+          "durationMs": 5610
+        },
+        {
+          "state": "RUNNING",
+          "label": "执行与等待，未拆分",
+          "durationMs": 124005
+        },
+        {
+          "state": "ACCEPTING",
+          "label": "验收状态区间",
+          "durationMs": 982
+        },
+        {
+          "state": "ACCEPTED",
+          "label": "验收后知识处理",
+          "durationMs": 49
+        },
+        {
+          "state": "COMPLETE",
+          "label": "已完成",
+          "durationMs": 0
+        }
+      ],
+      "pauseRequests": 0,
+      "pauseDurationMs": null,
+      "criticalPathMs": null
+    },
+    "acceptanceCommands": {
+      "recordedPassed": true,
+      "latestHashBoundReceiptOnly": true,
+      "currentArtifactsRevalidated": false,
+      "confirmedCommandMs": 979
+    },
+    "independentCostSupplement": {
+      "verifiedAgainstRollouts": false,
+      "automaticallyBoundToRun": false,
+      "allReportedTimesPresent": false,
+      "clockCorrelation": "unverified-between-threads",
+      "knownParticipantMs": 608651,
+      "knownCoveredWallMs": null,
+      "maxReportedOverlap": null,
+      "criticalPathMs": null,
+      "spans": [
+        {
+          "role": "maintainer",
+          "phase": "implementation-coordination-reporting",
+          "durationMs": null
+        },
+        {
+          "role": "GM",
+          "phase": "one-turn-selection-creation-binding",
+          "durationMs": 111287
+        },
+        {
+          "role": "implementation-agent",
+          "phase": "context-entry-check",
+          "durationMs": 61506
+        },
+        {
+          "role": "implementation-agent",
+          "phase": "delivery-adapter",
+          "durationMs": 185330
+        },
+        {
+          "role": "PM",
+          "phase": "product-implementation-and-acceptance",
+          "durationMs": 250528
+        }
+      ]
+    }
+  },
+  "runtimeOverhead": {
+    "additionalModelCalls": 0,
+    "writesToWorkflowState": 0,
+    "automaticallyAddedToStatus": false,
+    "latencyBenchmark": null,
+    "note": "Code path properties; not measured productivity or per-run savings"
+  },
+  "retainedCorrections": [
+    "Initial Windows fixture cleanup failed because SQLite was still open; hook now closes the database first.",
+    "Initial multi-thread union and peak fields removed after review because clocks were unverified. Original private output retained.",
+    "Cost-report complete field is an upstream claim, not proof against original rollout data."
+  ],
+  "constructionCost": {
+    "collectedAt": "2026-09-12T12:29:42.306Z",
+    "complete": false,
+    "actors": [
+      {
+        "phase": "observability-implementation-and-verification",
+        "complete": false,
+        "inputTokens": 2458410,
+        "cachedInputTokens": 2351488,
+        "uncachedInputTokens": 106922,
+        "outputTokens": 25472,
+        "totalTokens": 2483882
+      },
+      {
+        "phase": "independent-trace-review",
+        "complete": true,
+        "inputTokens": 550897,
+        "cachedInputTokens": 432896,
+        "uncachedInputTokens": 118001,
+        "outputTokens": 5889,
+        "totalTokens": 556786
+      }
+    ],
+    "totals": {
+      "inputTokens": 3009307,
+      "cachedInputTokens": 2784384,
+      "uncachedInputTokens": 224923,
+      "outputTokens": 31361,
+      "totalTokens": 3040668
+    },
+    "note": "One-time construction and independent review; current maintainer unfinished at cutoff; excludes later reporting and publishing work; not a recurring saving"
+  }
+}
