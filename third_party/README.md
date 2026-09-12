@@ -22,3 +22,9 @@ and selectively loaded shards pattern from
 [`v3/@claude-flow/guidance/src/retriever.ts`](https://github.com/ruvnet/ruflo/blob/39e0b0540c9b018174955fc8a21f355bbac26c6a/v3/@claude-flow/guidance/src/retriever.ts)
 at the same pinned commit. This is a design adaptation in local Markdown rules;
 no Guidance package code, hash embeddings or intent classifier is imported.
+
+`src/continue-gate.mjs` borrows evidence-prioritized continuation advice from
+[`v3/@claude-flow/guidance/src/continue-gate.ts`](https://github.com/ruvnet/ruflo/blob/39e0b0540c9b018174955fc8a21f355bbac26c6a/v3/@claude-flow/guidance/src/continue-gate.ts)
+at the same pinned MIT revision. The local implementation reads existing run
+events and emits advisory signals only; no upstream class, thresholds, token
+slope computation, automatic pause or checkpoint history is copied.

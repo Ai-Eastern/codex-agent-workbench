@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "ea682b7321db79273db4b930c75990fa46ec994f",
+  "adopted": true,
+  "scope": "advisory-only addition to existing status/start/continue snapshots; not a new enforcement gate",
+  "sourceHashes": {
+    "src/continue-gate.mjs": "ebb7ed7f7a277ed1af5b66235ec51ee3c5b185fb097ed63fd7bfd1e54ce05ff7",
+    "src/workflow.mjs": "c514dbd689f2f83407dd56a38d3821c419aea2cbf0cde1621fa36b88acb4f671",
+    "test/continue-gate.test.mjs": "cafb65ed0e5a3bd9f7df960b9b23dee361fd62ec58f475c1cbabe6c7b616bd0c",
+    "skills/codex-project-workbench/references/execution.md": "04c459cb329e64da440ee600b3ae5b3aa385db38d420d596b27744c63bd8c6ff"
+  },
+  "verification": {
+    "focusedTests": 6,
+    "fullSuite": {
+      "tests": 116,
+      "passed": 115,
+      "failed": 0,
+      "skipped": 1,
+      "durationMs": 3483.3782
+    },
+    "completedProductRun": {
+      "operation": "read-only status",
+      "status": "COMPLETE",
+      "nextAction": "REPORT_ACCEPTANCE",
+      "acceptanceVerified": true,
+      "adviceAdded": false,
+      "eventsUnchanged": true
+    },
+    "installedExecutionNoteMatches": true
+  },
+  "runtimeOverhead": {
+    "additionalModelCalls": 0,
+    "additionalPersistedEvents": 0,
+    "normalExecutionWaitingPausedCompletedPayloadChars": 0,
+    "initialPreparedHistoryQueries": 1,
+    "diagnosticHistoryQueriesMaximum": 2,
+    "note": "code-path properties and bounded tests, not measured productivity or latency gain"
+  },
+  "limitations": [
+    "No inferred internal steps, rework ratio or remaining token budget",
+    "Warnings identify repeated events, not identical root causes",
+    "Preflight repeat signal applies only to initial PREPARED/START; later blocked recovery retains existing diagnostics",
+    "Evidence drift retains RECONCILE_EVIDENCE with existing details",
+    "No live failure injection or new desktop dispatch in this turn"
+  ],
+  "constructionCost": {
+    "collectedAt": "2026-09-12T11:35:55.542Z",
+    "complete": false,
+    "actors": [
+      {
+        "phase": "continue-gate-implementation-and-verification",
+        "complete": false,
+        "inputTokens": 1418405,
+        "cachedInputTokens": 1258240,
+        "uncachedInputTokens": 160165,
+        "outputTokens": 16140,
+        "totalTokens": 1434545
+      },
+      {
+        "phase": "independent-gate-review",
+        "complete": true,
+        "inputTokens": 538495,
+        "cachedInputTokens": 456448,
+        "uncachedInputTokens": 82047,
+        "outputTokens": 3967,
+        "totalTokens": 542462
+      }
+    ],
+    "totals": {
+      "inputTokens": 1956900,
+      "cachedInputTokens": 1714688,
+      "uncachedInputTokens": 242212,
+      "outputTokens": 20107,
+      "totalTokens": 1977007
+    },
+    "note": "One-time maintainer and review cost; maintainer incomplete at cutoff; not a per-run saving"
+  }
+}

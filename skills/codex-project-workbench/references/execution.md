@@ -22,6 +22,8 @@
 
 `status --project <project> [--run <runId>]` 只查询。`pause --project <project> --run <runId>` 停止后续派工；授权持续工作下的 continue 不增加逐轮人工审批。FAILED/BLOCKED/RESERVED、证据变化或知识保存待处理按 [recovery.md](recovery.md)，不在正常入口猜修复方法。
 
+返回 `continueGate` 时，按 signals 核对既有事件、失败检查和条件变化；重复次数是诊断提醒，不证明根因相同。`advisoryOnly` 不改变 nextAction、暂停或恢复授权，不重置返修预算。已有解除条件与授权满足时按原入口接续，不为提示另开审核、汇报或模型判断轮。未返回该字段也不证明工作高效；内部步骤、Token 剩余额度及无效返工比例未采集，不能猜测。
+
 知识候选随既有工程交付提交，captureEnabled 授予本项目捕获时统一验收后保存；没有该权限只留候选，不重复问保存同一记录。知识保存失败不重做工程验收。新阶段、实际需求变化或 COMPLETE 后已授权的产物变更才新建合同；未完成的失败仍沿原 run 恢复，不能以改文件为由清空失败预算。已变产物不能继续使用旧通过结论。
 
 保存证据直接保存 CLI JSON 文本，不经 PowerShell 多层重新序列化。派工已调用而包装器保存失败时，只读 status/事件并保留保存错误，不能为得到整齐输出重跑 start/continue。

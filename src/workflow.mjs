@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {StateGraph,Annotation,START,END} from '@langchain/langgraph';
 import {SqliteSaver} from '@langchain/langgraph-checkpoint-sqlite';
 import {createKnowledge,validateKnowledgeCandidate} from './knowledge.mjs';
+import {continueGate} from './continue-gate.mjs';
 import {digest,readJson,writeJson,safePath,assertContained,projectIdentity,validateRequest,knowledgeIndexPath} from './contracts.mjs';
 
 export function knowledge(cfg){return createKnowledge({projectId:cfg.projectId,vaultRoot:cfg.vaultRoot,indexPath:knowledgeIndexPath(cfg),sourceRoot:cfg.projectRoot});}
@@ -103,7 +104,8 @@ function snapshot(cfg,store,id){
   else if(mode==='native'&&tasks.some(t=>t.status==='ASSIGNED'))type='CLAIM_NATIVE';
   else if(tasks.some(t=>['DISPATCHED','NATIVE_BOUND'].includes(t.status)))type='WAIT_FOR_WORKERS';
   const taskIds=tasks.filter(t=>type==='EXECUTE_DIRECT'?t.status==='ASSIGNED':type==='CLAIM_NATIVE'?t.status==='ASSIGNED':type==='BIND_NATIVE'?t.status==='NATIVE_CLAIMED':type==='WAIT_FOR_WORKERS'?['DISPATCHED','NATIVE_BOUND'].includes(t.status):false).map(t=>t.task_id);
-  return {projectId:cfg.projectId,runId:id,mode,status:run.pause_requested?'PAUSED':run.status,phase:run.status,reason:run.reason,nextAction:{type,actorThreadId:cfg.pmThreadId,taskIds},acceptance,knowledgeCandidates,knowledgeIssues,tasks:tasks.map(t=>({id:t.task_id,status:t.status,threadId:t.thread_id,attemptId:t.attempt})),packets:tasks.filter(t=>t.status==='ASSIGNED').map(t=>JSON.parse(t.packet))};
+  const advice=continueGate(store.db,run,tasks,type,acceptance);
+  return {projectId:cfg.projectId,runId:id,mode,status:run.pause_requested?'PAUSED':run.status,phase:run.status,reason:run.reason,nextAction:{type,actorThreadId:cfg.pmThreadId,taskIds},acceptance,knowledgeCandidates,knowledgeIssues,tasks:tasks.map(t=>({id:t.task_id,status:t.status,threadId:t.thread_id,attemptId:t.attempt})),...(advice?{continueGate:advice}:{}),packets:tasks.filter(t=>t.status==='ASSIGNED').map(t=>JSON.parse(t.packet))};
 }
 export function prepare(cfg,input){
   const req=validateRequest(input,cfg),store=openStore(cfg),index=knowledge(cfg);
