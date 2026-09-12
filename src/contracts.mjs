@@ -82,7 +82,8 @@ export function validateRequest(value,cfg){
     if(task.constraints!==undefined&&(!Array.isArray(task.constraints)||task.constraints.some(x=>typeof x!=='string')))throw Error('Task constraints must describe local module responsibilities and interfaces');
     if(task.knowledge!==undefined){
       const k=task.knowledge;
-      if(!k||typeof k!=='object'||Array.isArray(k)||Object.keys(k).some(key=>!['query','ids','limit','maxChars'].includes(key)))throw Error('Invalid task knowledge policy');
+      if(!k||typeof k!=='object'||Array.isArray(k)||Object.keys(k).some(key=>!['query','ids','limit','maxChars','strategy'].includes(key)))throw Error('Invalid task knowledge policy');
+      if(k.strategy!==undefined&&!['bm25','smart'].includes(k.strategy))throw Error('Invalid task knowledge strategy');
       if(k.query!==undefined&&(typeof k.query!=='string'||k.query.length>2048))throw Error('Invalid task knowledge query');
       if(k.ids!==undefined&&(!Array.isArray(k.ids)||k.ids.length>50||k.ids.some(id=>typeof id!=='string'||!id.trim()||id.length>200||/[\x00-\x1f\x7f]/u.test(id))))throw Error('Invalid task knowledge IDs');
       if(k.limit!==undefined&&(!Number.isInteger(k.limit)||k.limit<1||k.limit>50))throw Error('Invalid task knowledge limit');

@@ -58,7 +58,7 @@ export async function main(args=process.argv.slice(2)){
   if(command==='bind')return bindNative(cfg,opts.run,opts.task,opts.thread);
   if(command==='search'||command==='index'||command==='capture'){
     const index=knowledge(cfg);
-    try{return command==='search'?index.search(opts.query??'',{maxChars:Number(opts['max-chars']??6000)}):command==='index'?index.sync():index.capture(readJson(opts.candidate));}finally{index.close();}
+    try{return command==='search'?index.search(opts.query??'',{maxChars:Number(opts['max-chars']??6000),limit:Number(opts.limit??5),strategy:opts.strategy??'bm25'}):command==='index'?index.sync():index.capture(readJson(opts.candidate));}finally{index.close();}
   }
   if(command==='start'||command==='continue'){
     const current=status(cfg,opts.run);

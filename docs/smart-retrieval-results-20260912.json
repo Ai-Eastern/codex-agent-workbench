@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-12",
+  "decision": "RETAIN_BM25",
+  "candidate": "smart-explicit-only",
+  "upstreamCommit": "39e0b0540c9b018174955fc8a21f355bbac26c6a",
+  "corpus": {
+    "notes": 13,
+    "queries": 18,
+    "answerable": 15,
+    "unanswerable": 3,
+    "humanVerified": false
+  },
+  "config": {
+    "limit": 5,
+    "maxChars": 1800,
+    "warmups": 2,
+    "note": "single evaluation; not a multi-run performance benchmark"
+  },
+  "hashes": {
+    "sourceHash": "db9645974b641f2840a2bece98142cc5bfe8631a21c77b748655682a1eeac742",
+    "labelsHash": "96d2c3eb3455ba4cd893100e1d608a645368911a550654f5c8b3184f7cc626f6",
+    "snapshotHash": "004fce98facb31f487b9de7dec6aeb26cf03148b79ed19d9952e768e09116098",
+    "algorithmHash": "9a7bb17ff72afcf926ce7d31222a25223c8c2872d2ccd6a9c39e677e29bd28a6",
+    "algorithmFreezeHash": "a9ec8c9f6c1402b6be1bdf4eb5561aa05d2b7471ba96eaa92046fba2c2a20e8e",
+    "scriptHash": "86682d155b3122774947ad6a32f4bf55da64a406c55a75cbaf13a355a1f3747a",
+    "final": {
+      "sourceHash": "db9645974b641f2840a2bece98142cc5bfe8631a21c77b748655682a1eeac742",
+      "labelsHash": "96d2c3eb3455ba4cd893100e1d608a645368911a550654f5c8b3184f7cc626f6",
+      "snapshotHash": "004fce98facb31f487b9de7dec6aeb26cf03148b79ed19d9952e768e09116098",
+      "algorithmHash": "9a7bb17ff72afcf926ce7d31222a25223c8c2872d2ccd6a9c39e677e29bd28a6",
+      "algorithmFreezeHash": "a9ec8c9f6c1402b6be1bdf4eb5561aa05d2b7471ba96eaa92046fba2c2a20e8e"
+    }
+  },
+  "labelNormalization": {
+    "originalHash": "64dab7e2f0a8a1dd2b4dd7cc5f6f95cd8b97c55b9b22f80398fe7c7f4c8896ca",
+    "correctedHash": "96d2c3eb3455ba4cd893100e1d608a645368911a550654f5c8b3184f7cc626f6",
+    "referencesCorrected": 10,
+    "semanticLabelsChanged": false,
+    "queriesBeforeCorrection": 0
+  },
+  "baseline": {
+    "requiredRecall": 1,
+    "meanMRR": 0.9666666666666667,
+    "totalIrrelevant": 60,
+    "totalForbidden": 0,
+    "noAnswerReturned": 12,
+    "totalChars": 32253,
+    "medianMs": 23.390999999999977
+  },
+  "smart": {
+    "requiredRecall": 0.9333333333333333,
+    "meanMRR": 0.9333333333333333,
+    "totalIrrelevant": 61,
+    "totalForbidden": 0,
+    "noAnswerReturned": 12,
+    "totalChars": 32226,
+    "medianMs": 25.978350000000034
+  },
+  "gate": {
+    "perQueryRequiredRecall": false,
+    "totals": false,
+    "improved": false,
+    "adopted": false,
+    "rules": "Each answerable query requiredRecall >= baseline; total forbidden, no-answer returned, and irrelevant do not increase; requiredRecall or meanMRR improves, or irrelevant decreases."
+  },
+  "queries": [
+    {
+      "id": "case-01",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 2,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 26.346900000000005
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 2,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 27.96090000000001
+      }
+    },
+    {
+      "id": "case-02",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 24.606899999999996
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 25.590000000000003
+      }
+    },
+    {
+      "id": "case-03",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.339799999999997
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 27.872900000000016
+      }
+    },
+    {
+      "id": "case-04",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 26.305199999999957
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 29.086400000000026
+      }
+    },
+    {
+      "id": "case-06",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 25.146500000000003
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 27.157899999999984
+      }
+    },
+    {
+      "id": "case-05",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.51369999999997
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 25.390100000000018
+      }
+    },
+    {
+      "id": "case-07",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.721599999999967
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1773,
+        "ms": 24.681700000000035
+      }
+    },
+    {
+      "id": "case-08",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 22.97180000000003
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 27.795399999999972
+      }
+    },
+    {
+      "id": "case-10",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 20.938399999999888
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 26.179200000000037
+      }
+    },
+    {
+      "id": "case-12",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 24.17330000000004
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 25.777500000000032
+      }
+    },
+    {
+      "id": "case-13",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1653,
+        "ms": 24.74580000000003
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1653,
+        "ms": 26.358900000000062
+      }
+    },
+    {
+      "id": "case-14",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 0.5,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.442199999999957
+      },
+      "smart": {
+        "requiredRecall": 0,
+        "mrr": 0,
+        "irrelevantCount": 5,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 26.220500000000015
+      }
+    },
+    {
+      "id": "case-15",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.179200000000037
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 26.398799999999937
+      }
+    },
+    {
+      "id": "case-16",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 21.639400000000023
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 24.648899999999912
+      }
+    },
+    {
+      "id": "case-17",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 2,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 21.188099999999963
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 1,
+        "irrelevantCount": 2,
+        "noAnswerReturned": 0,
+        "chars": 1800,
+        "ms": 23.597600000000057
+      }
+    },
+    {
+      "id": "case-18",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 4,
+        "chars": 1800,
+        "ms": 21.376100000000065
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 4,
+        "noAnswerReturned": 4,
+        "chars": 1800,
+        "ms": 23.599900000000048
+      }
+    },
+    {
+      "id": "case-19",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 5,
+        "noAnswerReturned": 5,
+        "chars": 1800,
+        "ms": 18.99590000000012
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 5,
+        "noAnswerReturned": 5,
+        "chars": 1800,
+        "ms": 20.89949999999999
+      }
+    },
+    {
+      "id": "case-20",
+      "bm25": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 3,
+        "chars": 1800,
+        "ms": 20.390100000000075
+      },
+      "smart": {
+        "requiredRecall": 1,
+        "mrr": 0,
+        "irrelevantCount": 3,
+        "noAnswerReturned": 3,
+        "chars": 1800,
+        "ms": 20.881200000000035
+      }
+    }
+  ],
+  "verification": {
+    "command": "node --test test/*.test.mjs",
+    "total": 110,
+    "passed": 109,
+    "skipped": 1,
+    "failed": 0,
+    "realBenchmarkInvocations": 2,
+    "preflightFailures": 1,
+    "completedComparisons": 1,
+    "newDependencies": 0,
+    "productDispatches": 0
+  },
+  "frameworkCost": {
+    "collectedAt": "2026-09-12T07:25:41.919Z",
+    "complete": false,
+    "knownReportedLowerBound": {
+      "input_tokens": 6893916,
+      "cached_input_tokens": 6590464,
+      "output_tokens": 56429,
+      "total_tokens": 6950345,
+      "uncached_input_tokens": 303452
+    },
+    "actors": [
+      {
+        "role": "maintainer",
+        "phase": "retrieval-adaptation-and-reporting",
+        "complete": false,
+        "knownReportedLowerBound": {
+          "input_tokens": 4531114,
+          "cached_input_tokens": 4320768,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 23794,
+          "reasoning_output_tokens": 9709,
+          "total_tokens": 4554908
+        },
+        "responses": 30
+      },
+      {
+        "role": "evaluation-agent",
+        "phase": "independent-labels",
+        "complete": true,
+        "knownReportedLowerBound": {
+          "input_tokens": 821693,
+          "cached_input_tokens": 781312,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 14453,
+          "reasoning_output_tokens": 1940,
+          "total_tokens": 836146
+        },
+        "responses": 16
+      },
+      {
+        "role": "evaluation-agent",
+        "phase": "evaluation-script",
+        "complete": true,
+        "knownReportedLowerBound": {
+          "input_tokens": 1541109,
+          "cached_input_tokens": 1488384,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 18182,
+          "reasoning_output_tokens": 3776,
+          "total_tokens": 1559291
+        },
+        "responses": 30
+      }
+    ],
+    "note": "Maintainer turn unfinished; subsequent reporting/commit excluded. One-time framework construction, not retrieval runtime or subscription charges."
+  }
+}

@@ -5,6 +5,7 @@ import {
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
+import { termVariants, fuseAndDiversify } from './retrieval.mjs';
 
 const NOTE_BYTES = 512 * 1024;
 const SCAN_BYTES = 64 * 1024 * 1024;
@@ -303,24 +304,34 @@ export function createKnowledge({ projectId, vaultRoot, indexPath, sourceRoot } 
 
   return {
     sync() { return locked(syncInside); },
-    search(query, { limit = 5, maxChars = 6000, ids } = {}) {
+    search(query, { limit = 5, maxChars = 6000, ids, strategy = 'bm25' } = {}) {
       if (typeof query !== 'string' || query.length > 2048) fail('KNOWLEDGE_LIMIT', 'Query must be a string of at most 2048 characters');
       if (!Number.isInteger(limit) || limit < 1 || limit > 50 || !Number.isInteger(maxChars) || maxChars < 0 || maxChars > 100000) {
         fail('KNOWLEDGE_LIMIT', 'limit must be 1 to 50; maxChars must be 0 to 100000');
       }
+      if (!['bm25', 'smart'].includes(strategy)) fail('KNOWLEDGE_INPUT', 'Invalid knowledge strategy');
       if (ids !== undefined && (!Array.isArray(ids) || ids.length > 50 || ids.some(id => typeof id !== 'string' || !id.trim() || id.length > 200 || /[\x00-\x1f\x7f]/u.test(id)))) {
         fail('KNOWLEDGE_INPUT', 'Invalid knowledge IDs');
       }
       return locked(() => {
-        // ponytail: hash-scan the bounded vault on each query; add a watcher only after measured need.
+        // One source validation/index sync covers all term variants in this search.
         syncInside();
         const terms = [...new Set(tokens(query))].slice(0, 128);
         const result = { projectId, query, items: [], chars: 0 };
+        if (strategy === 'smart') result.retrieval = { strategy, syncCount: 1, queryCount: 0, candidateCount: 0 };
         if (!terms.length || !maxChars || ids?.length === 0) return result;
-        const match = terms.map(term => `"${term.replaceAll('"', '""')}"`).join(' OR ');
         const scope = ids === undefined ? '' : ` AND d.id IN (${ids.map(() => '?').join(',')})`;
-        const rows = db.prepare(`SELECT d.* FROM knowledge_fts f JOIN knowledge_documents d ON d.id=f.id
-          WHERE knowledge_fts MATCH ?${scope} ORDER BY bm25(knowledge_fts,0,5,1),d.path LIMIT ?`).all(match, ...(ids ?? []), limit);
+        const statement = db.prepare(`SELECT d.* FROM knowledge_fts f JOIN knowledge_documents d ON d.id=f.id
+          WHERE knowledge_fts MATCH ?${scope} ORDER BY bm25(knowledge_fts,0,5,1),d.path LIMIT ?`);
+        const variants = strategy === 'smart' ? termVariants(terms) : [terms];
+        const candidateLimit = strategy === 'smart' ? Math.min(50, Math.max(20, limit * 3)) : limit;
+        const ranked = variants.map(variant => statement.all(
+          variant.map(term => `"${term.replaceAll('"', '""')}"`).join(' OR '), ...(ids ?? []), candidateLimit));
+        const rows = strategy === 'smart' ? fuseAndDiversify(ranked, tokens, limit) : ranked[0];
+        if (result.retrieval) {
+          result.retrieval.queryCount = variants.length;
+          result.retrieval.candidateCount = new Set(ranked.flat().map(row => row.id)).size;
+        }
         for (const row of rows) {
           const text = row.text.slice(0, maxChars - result.chars);
           if (!text) break;
