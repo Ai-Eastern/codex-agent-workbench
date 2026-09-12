@@ -152,7 +152,7 @@ export function claimNative(cfg,id,taskId){
     if(r.status!=='RUNNING'||r.pause_requested||JSON.parse(r.request).mode!=='native')throw Error('Native claim is not currently authorized');
     const changed=s.db.prepare("UPDATE tasks SET status='NATIVE_CLAIMED' WHERE run_id=? AND task_id=? AND status='ASSIGNED'").run(id,taskId);
     if(changed.changes!==1)throw Error('Native task already claimed or not assignable; do not create again');
-    s.event(id,'native_claim',{taskId});const t=s.tasks(id).find(t=>t.task_id===taskId),p=JSON.parse(t.packet);return {...p,prompt:promptFor(p)};
+    const t=s.tasks(id).find(t=>t.task_id===taskId),p=JSON.parse(t.packet);s.event(id,'native_claim',{taskId,attemptId:t.attempt});return {...p,prompt:promptFor(p)};
   })();}finally{s.close();}
 }
 export function bindNative(cfg,id,taskId,threadId){
@@ -163,7 +163,7 @@ export function bindNative(cfg,id,taskId,threadId){
     if(t.status==='NATIVE_BOUND'&&t.thread_id===threadId)return snapshot(cfg,s,id);
     if(t.status!=='NATIVE_CLAIMED')throw Error('Native task must be claimed once before binding');
     s.db.prepare("UPDATE tasks SET status='NATIVE_BOUND',thread_id=? WHERE run_id=? AND task_id=?").run(threadId,id,taskId);
-    s.event(id,'native_bound',{taskId,threadId});return snapshot(cfg,s,id);
+    s.event(id,'native_bound',{taskId,attemptId:t.attempt,threadId});return snapshot(cfg,s,id);
   })();}finally{s.close();}
 }
 export function listRuns(cfg){const s=openStore(cfg);try{return {projectId:cfg.projectId,runs:s.db.prepare('SELECT id,status,created_at,reason FROM runs ORDER BY created_at DESC').all()};}finally{s.close();}}
@@ -384,19 +384,24 @@ export async function advance(cfg,id,{desktop,commandRunner=runCheck,resume=fals
           if(t.status==='RESERVED'){store.status(id,'BLOCKED',`Ambiguous dispatch for ${t.task_id}; never automatically resend`);break;}
           if(!['DISPATCHED','ASSIGNED','NATIVE_BOUND'].includes(t.status))continue;
           if(req.mode==='native'&&t.status!=='NATIVE_BOUND')continue;
-          let terminal=true;
+          let terminal=true,observedTurnId;
           if(req.mode==='langgraph'){
             if(!desktop)throw Error('Desktop adapter required');
             const view=await desktop.read(t.thread_id);
             if(view.turnId===t.baseline)continue;
-            if(view.status==='active'||view.turnStatus==='inProgress')continue;
+            if(view.status==='active'||view.turnStatus==='inProgress'){
+              // Reuse normal result collection; this is an observation, never an exact worker start.
+              if(typeof view.turnId==='string'&&view.turnId&&!store.db.prepare("SELECT 1 FROM events WHERE run_id=? AND kind='turn_started_observed' AND json_extract(data,'$.taskId')=? AND json_extract(data,'$.attemptId')=? LIMIT 1").get(id,t.task_id,t.attempt))store.event(id,'turn_started_observed',{taskId:t.task_id,attemptId:t.attempt,threadId:t.thread_id,turnId:view.turnId});
+              continue;
+            }
             terminal=view.turnStatus==='completed';
             if(!terminal){store.status(id,'BLOCKED',`Engineer ${t.task_id} ended without a completed turn`);break;}
+            if(typeof view.turnId==='string'&&view.turnId)observedTurnId=view.turnId;
           }
           const result=readReceipt(cfg,t);
           if(!result){if(req.mode==='langgraph'&&terminal)store.status(id,'BLOCKED',`Missing result receipt for ${t.task_id}`);continue;}
           store.db.prepare('UPDATE tasks SET status=?,result=? WHERE run_id=? AND task_id=?').run(result.status==='done'?'DONE':'BLOCKED',JSON.stringify(result),id,t.task_id);
-          store.event(id,'task_result',{taskId:t.task_id,status:result.status,receiptHash:digest(fs.readFileSync(JSON.parse(t.packet).receiptPath)),...(result.status==='done'?{artifacts:taskArtifacts(cfg,req,t.task_id)}:{})});
+          store.event(id,'task_result',{taskId:t.task_id,attemptId:t.attempt,threadId:req.mode==='direct'?cfg.pmThreadId:t.thread_id,...(observedTurnId?{turnId:observedTurnId}:{}),status:result.status,receiptHash:digest(fs.readFileSync(JSON.parse(t.packet).receiptPath)),...(result.status==='done'?{artifacts:taskArtifacts(cfg,req,t.task_id)}:{})});
           if(result.knowledgeCandidate!==undefined)try{validateKnowledgeCandidate(result.knowledgeCandidate);}catch(error){store.event(id,'knowledge_candidate_invalid',{taskId:t.task_id,message:error.message});}
           if(result.status==='blocked'){store.status(id,'BLOCKED',result.summary);break;}
         }
@@ -438,13 +443,13 @@ export async function advance(cfg,id,{desktop,commandRunner=runCheck,resume=fals
           if(req.mode==='langgraph'){
             store.db.prepare("UPDATE tasks SET status='RESERVED',baseline=? WHERE run_id=? AND task_id=?").run(heads.get(t.task_id),id,t.task_id);
             store.event(id,'dispatch_intent',{taskId:t.task_id,attemptId:t.attempt});
-            try{await desktop.send(t.thread_id,promptFor(packet));store.db.prepare("UPDATE tasks SET status='DISPATCHED' WHERE run_id=? AND task_id=?").run(id,t.task_id);}
+            try{await desktop.send(t.thread_id,promptFor(packet));store.db.transaction(()=>{store.db.prepare("UPDATE tasks SET status='DISPATCHED' WHERE run_id=? AND task_id=?").run(id,t.task_id);store.event(id,'dispatch_ack',{taskId:t.task_id,attemptId:t.attempt,threadId:t.thread_id});})();}
             catch(error){
               const details={code:typeof error.code==='string'?error.code.slice(0,80):'DISPATCH_FAILED',reason:'Desktop dispatch acknowledgement was not confirmed',message:String(error.message??error).slice(0,500),delivery:typeof error.delivery==='string'?error.delivery.slice(0,80):'UNKNOWN'};
               store.event(id,'dispatch_failed',{taskId:t.task_id,attemptId:t.attempt,...details});
               store.status(id,'BLOCKED',`${details.delivery}: ${details.message}`);break;
             }
-          }else store.db.prepare("UPDATE tasks SET status='ASSIGNED' WHERE run_id=? AND task_id=?").run(id,t.task_id);
+          }else store.db.transaction(()=>{store.db.prepare("UPDATE tasks SET status='ASSIGNED' WHERE run_id=? AND task_id=?").run(id,t.task_id);store.event(id,'task_assigned',{taskId:t.task_id,attemptId:t.attempt,mode:req.mode,threadId:req.mode==='direct'?cfg.pmThreadId:t.thread_id});})();
         }
         return {step:'stop'};
       })

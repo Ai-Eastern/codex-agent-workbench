@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "a19c566e2bafe75223e63fea031e501c07a53acc",
+  "scope": "real delivery observation and bounded scheduling repair, not an efficiency ranking",
+  "sourceHashes": {
+    "src/workflow.mjs": "53c03039917c1cc28499f6f9e92f0a28d506f456d27411d31044648635831d3b",
+    "src/trace-report.mjs": "e32ffa1496676777636674f1a8f1151422c0e00d4a57dd248a9f8e25ce15e354",
+    "test/task-timing.test.mjs": "c6a7d1d564fe502b2fd6cde64cccf66b29ae4b41922f8785b6b22b21a4d79889",
+    "test/trace-report.test.mjs": "c7760a038aeacd8ef344331a5e064a7af23c231a8dae996478b58e72980f7a3b",
+    "skills/codex-project-workbench/references/cost.md": "7a4a60dca54110844a734d8c125beff58e805aef6cfb72b6448f1bacf85f772d",
+    "skills/codex-project-workbench/references/handoff.md": "627a6924daf2ea8b8f6f3887fbc5fe911eb510658eccd46213cedd4310f7dda0"
+  },
+  "frameworkVerification": {
+    "tests": 127,
+    "passed": 126,
+    "failed": 0,
+    "skipped": 1,
+    "durationMs": 3327.6866
+  },
+  "product": {
+    "project": "LianYu",
+    "mode": "direct",
+    "engineerCount": 0,
+    "status": "COMPLETE",
+    "cases": 17,
+    "formalAcceptanceCount": 1,
+    "formalFailures": 0,
+    "repairAttempts": 0,
+    "repeatedFormalAcceptances": 0,
+    "knowledgeCaptures": 1,
+    "checks": [
+      "explicit-source-annotations-package-dir",
+      "deterministic-three-file-verification",
+      "each-file-tampered-and-missing",
+      "damaged-input-and-argument-rejection",
+      "structured-errors-and-exit-codes",
+      "success-and-failure-read-only-snapshots"
+    ],
+    "actualModels": {
+      "GM": "gpt-6-astra/ultra",
+      "PM": "gpt-5.6-sol/high",
+      "frameworkAgent": "gpt-5.6-luna/medium"
+    },
+    "evidence": "local-command; no human, training, model-compatibility or production validation",
+    "selfTestNote": "A test before implementation failed due to the missing source; basic one-case self-tests then passed. The distinct full 17-case controlled acceptance ran once."
+  },
+  "timing": {
+    "controllerWindowMs": 237797,
+    "phases": [
+      {
+        "state": "PREPARED",
+        "durationMs": 7263
+      },
+      {
+        "state": "RUNNING",
+        "durationMs": 229310
+      },
+      {
+        "state": "ACCEPTING",
+        "durationMs": 1187
+      },
+      {
+        "state": "ACCEPTED",
+        "durationMs": 37
+      },
+      {
+        "state": "COMPLETE",
+        "durationMs": 0
+      }
+    ],
+    "assignmentToResultMs": 229290,
+    "taskAttemptCount": 1,
+    "unassociatedEventCount": 0,
+    "formalCommandMs": 1182,
+    "pmTurnMs": 451389,
+    "gmTurnMs": 113913,
+    "actualWorkerStartMs": null,
+    "pureComputeMs": null,
+    "criticalPathMs": null,
+    "crossActorCombinedWallMs": null
+  },
+  "repair": {
+    "issue": "Extra GM dispatch report duplicated the native send receipt and prompt",
+    "source": "This observation instruction introduced the extra report",
+    "observedReceiptToDuplicateSavedMs": 34183,
+    "extraGMToolCalls": 1,
+    "change": "Installed Skill removes the sampling-only manual report; collector uses the original explicit native receipt",
+    "collectorReplayedAgainstRealNativeReceipt": true,
+    "manualGMReportRequiredByCollector": false,
+    "subsequentRealGMDispatchValidated": false,
+    "overallTimeSavedMs": null,
+    "tokenSavings": null,
+    "note": "Observed GM interval overlapped PM execution; no end-to-end savings inferred. Existing duplicate report retained."
+  },
+  "cost": {
+    "collectedAt": "2026-09-12T13:01:08.571Z",
+    "complete": false,
+    "actors": [
+      {
+        "role": "maintainer",
+        "phase": "timing-implementation-sampling-and-repair",
+        "kind": "framework",
+        "complete": false,
+        "responses": 27,
+        "inputTokens": 3818693,
+        "cachedInputTokens": 3730944,
+        "uncachedInputTokens": 87749,
+        "outputTokens": 22335,
+        "totalTokens": 3841028,
+        "turnDurationMs": null
+      },
+      {
+        "role": "implementation-agent",
+        "phase": "bounded-timing-contract-and-projection",
+        "kind": "framework",
+        "complete": true,
+        "responses": 12,
+        "inputTokens": 1075875,
+        "cachedInputTokens": 1049600,
+        "uncachedInputTokens": 26275,
+        "outputTokens": 6166,
+        "totalTokens": 1082041,
+        "turnDurationMs": 132886
+      },
+      {
+        "role": "GM",
+        "phase": "existing-PM-dispatch-and-manual-receipt",
+        "kind": "management",
+        "complete": true,
+        "responses": 5,
+        "inputTokens": 579866,
+        "cachedInputTokens": 459392,
+        "uncachedInputTokens": 120474,
+        "outputTokens": 3281,
+        "totalTokens": 583147,
+        "turnDurationMs": 113913
+      },
+      {
+        "role": "PM",
+        "phase": "readonly-package-verifier-delivery",
+        "kind": "product",
+        "complete": true,
+        "responses": 18,
+        "inputTokens": 2294453,
+        "cachedInputTokens": 2151040,
+        "uncachedInputTokens": 143413,
+        "outputTokens": 15866,
+        "totalTokens": 2310319,
+        "turnDurationMs": 451389
+      }
+    ],
+    "productAndManagement": {
+      "inputTokens": 2874319,
+      "cachedInputTokens": 2610432,
+      "uncachedInputTokens": 263887,
+      "outputTokens": 19147,
+      "totalTokens": 2893466
+    },
+    "frameworkConstructionLowerBound": {
+      "inputTokens": 4894568,
+      "cachedInputTokens": 4780544,
+      "uncachedInputTokens": 114024,
+      "outputTokens": 28501,
+      "totalTokens": 4923069
+    },
+    "note": "Maintainer unfinished at cutoff; later reporting/publishing excluded; cached input included in input; no subscription currency conversion"
+  },
+  "limitations": [
+    "Live product sample chose direct. Desktop acknowledgement/activity and native binding changes have bounded tests, not a new live multi-agent run.",
+    "Rules are installed and native receipt extraction is verified; future GM compliance and benefit still need normal dispatch observation.",
+    "Different product tasks cannot determine causal speed, error-rate or cost improvements.",
+    "Qwen3.7-Plus is not used in this round and user has requested temporarily avoiding it."
+  ]
+}

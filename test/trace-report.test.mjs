@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
-import {controllerTimeline,reportedTurns,traceReport} from '../src/trace-report.mjs';
+import {controllerTimeline,reportedTurns,taskAttemptTimeline,traceReport} from '../src/trace-report.mjs';
 import {prepare,advance,getPacket} from '../src/workflow.mjs';
 import {writeJson} from '../src/contracts.mjs';
 import {main} from '../src/cli.mjs';
@@ -19,6 +19,28 @@ test('state spans partition elapsed wall time, collapse polls and keep repair/fa
 test('pause is a point and an open phase never acquires an invented end',()=>{
   const r=controllerTimeline({created_at:100,status:'RUNNING'},[event(1,110,'status',{status:'RUNNING'}),event(2,120,'paused')]);
   assert.equal(r.complete,false);assert.equal(r.phases.at(-1).durationMs,null);assert.equal(r.phases.at(-1).endMs,null);assert.equal(r.observedThroughMs,120);assert.equal(r.pauseRequests,1);assert.equal(r.pauseDurationMs,null);
+});
+test('task timing is grouped by attempt and only matching observed turns get an interval',()=>{
+  const es=[
+    event(1,1,'task_assigned',{taskId:'A',attemptId:'old',mode:'langgraph',threadId:'worker'}),
+    event(2,2,'dispatch_intent',{taskId:'A',attemptId:'old',threadId:'worker'}),
+    event(3,3,'dispatch_ack',{taskId:'A',attemptId:'old',threadId:'worker'}),
+    event(4,4,'turn_started_observed',{taskId:'A',attemptId:'old',threadId:'worker',turnId:'turn-1'}),
+    event(5,9,'task_result',{taskId:'A',attemptId:'old',threadId:'worker',turnId:'turn-2',status:'done'}),
+    event(6,10,'task_repair',{taskId:'A',previousAttemptId:'old',attemptId:'new'}),
+    event(7,11,'task_assigned',{taskId:'A',attemptId:'new',mode:'langgraph',threadId:'worker'}),
+    event(8,12,'turn_started_observed',{taskId:'A',attemptId:'new',threadId:'worker',turnId:'turn-3'}),
+    event(9,15,'task_result',{taskId:'A',attemptId:'new',threadId:'worker',turnId:'turn-3',status:'done'}),
+    event(10,16,'task_result',{taskId:'A',status:'done'})
+  ];
+  const r=taskAttemptTimeline(es);
+  assert.deepEqual(r.attempts.map(x=>x.attemptId),['old','new']);
+  assert.equal(r.attempts[0].turnObservation,null);
+  assert.deepEqual(r.attempts[0].diagnostics,['TURN_ID_MISMATCH']);
+  assert.deepEqual(r.attempts[1].turnObservation,{turnId:'turn-3',startMs:12,endMs:15,durationMs:3});
+  assert.deepEqual(r.unassociated,[{eventId:10,atMs:16,kind:'task_result',taskId:'A'}]);
+  const changed=structuredClone(es);changed[8].data.threadId='different-worker';
+  assert.equal(taskAttemptTimeline(changed).attempts[1].turnObservation,null);
 });
 test('clock reversals and malformed event order cannot produce plausible elapsed values',()=>{
   for(const es of [[event(1,9,'prepared')],[event(2,20,'prepared'),event(1,20,'paused')],[event(1,20,'prepared'),event(2,19,'paused')],[event(1,NaN,'prepared')]])assert.throws(()=>controllerTimeline({created_at:10,status:'RUNNING'},es),/clock\/order/);

@@ -121,6 +121,7 @@ $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 - [Guidance 规则按需加载](docs/guidance-results-20260912.md)：已更新 Skill，工程师规则材料减少约 26%，PM 正常流程约 41%–46%；保留首次问题、修正验证和建设成本，不将字符量下降当成整体开发提速。
 - [ContinueGate 异常继续提醒](docs/continue-gate-results-20260912.md)：复用原有事件提示重复预检/验收恢复、已用返修预算和未知送达；不新增模型调用或自动重试，正常执行与等待不增加提示正文。
 - [Observability 执行链路分析](docs/observability-results-20260912.md)：新增按需只读 trace-report；恋语样本的控制器记录为 130.65 秒，其中执行与等待 124.01 秒、验收状态 0.98 秒。未采集的工程师开工、暂停时长与关键路径保留未知，不把等待算作模型计算时间。
+- [任务时间关联与真实调度修复](docs/task-timing-results-20260912.md)：补 task/attempt 观察边界，恋语只读验真 CLI 完成 17 用例和一次集成验收；发现 GM 重复派工报告增加约 34 秒收尾，改为由统计方使用原生回执，未将重叠时间当作端到端收益。
 - [架构、数据流与恢复边界](docs/architecture.md)
 - [Skill 入口](skills/codex-project-workbench/SKILL.md)、[工程师交付格式](skills/codex-project-workbench/references/worker.md)
 - [复用与许可证依据](docs/reuse-decision.md)、[实现契约](docs/implementation-contract.md)

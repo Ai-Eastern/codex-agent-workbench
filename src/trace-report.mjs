@@ -24,6 +24,50 @@ export function controllerTimeline(run,events){
   return {scope:'controller-state-residence-not-agent-compute',complete,observedStartMs:run.created_at,observedThroughMs:lastAt,observedWindowMs:lastAt-run.created_at,phases,markers,pauseRequests:markers.filter(m=>m.kind==='paused').length,pauseDurationMs:null,criticalPathMs:null};
 }
 
+const taskTimingKinds=new Set(['task_assigned','native_claim','native_bound','dispatch_intent','dispatch_ack','turn_started_observed','task_result','task_repair','blocked_task_repair']);
+
+// This is an event projection only. It deliberately does not consult the current
+// task row: a repaired task may have a different attempt than historical events.
+export function taskAttemptTimeline(events){
+  const groups=new Map(),unassociated=[];
+  const addUnassociated=e=>unassociated.push({eventId:e.id,atMs:e.at,kind:e.kind,taskId:typeof e.data?.taskId==='string'?e.data.taskId:null});
+  for(const e of events){
+    if(!taskTimingKinds.has(e.kind))continue;
+    const d=e.data??{},taskId=d.taskId,attemptId=d.attemptId;
+    if(typeof taskId!=='string'||!taskId||typeof attemptId!=='string'||!attemptId){addUnassociated(e);continue;}
+    const key=JSON.stringify([taskId,attemptId]);
+    if(!groups.has(key))groups.set(key,{taskId,attemptId,threadId:null,mode:null,events:[],_firstObserved:null,_result:null});
+    const g=groups.get(key),item={eventId:e.id,atMs:e.at,kind:e.kind};
+    for(const k of ['threadId','mode','turnId','status','previousAttemptId'])if(typeof d[k]==='string')item[k]=d[k];
+    g.events.push(item);
+    if(typeof d.threadId==='string'){if(g.threadId&&g.threadId!==d.threadId)g.events.push({eventId:e.id,atMs:e.at,kind:'diagnostic',code:'THREAD_ID_CHANGED'});else g.threadId=d.threadId;}
+    if(typeof d.mode==='string')g.mode=d.mode;
+    if(e.kind==='turn_started_observed'&&!g._firstObserved)g._firstObserved=item;
+    if(e.kind==='task_result'&&!g._result)g._result=item;
+  }
+  const attempts=[...groups.values()].map(g=>{
+    const first=g.events[0],observed=g._firstObserved,result=g._result;
+    const sameTurn=observed?.turnId&&result?.turnId&&observed.turnId===result.turnId&&observed.threadId&&observed.threadId===result.threadId&&!g.events.some(e=>e.code==='THREAD_ID_CHANGED');
+    const interval=sameTurn&&result.atMs>=observed.atMs?{turnId:observed.turnId,startMs:observed.atMs,endMs:result.atMs,durationMs:result.atMs-observed.atMs}:null;
+    const out={taskId:g.taskId,attemptId:g.attemptId,threadId:g.threadId,mode:g.mode,
+      boundaries:{taskAssignedAt: g.events.find(e=>e.kind==='task_assigned')?.atMs??null,
+        nativeClaimAt:g.events.find(e=>e.kind==='native_claim')?.atMs??null,
+        nativeBoundAt:g.events.find(e=>e.kind==='native_bound')?.atMs??null,
+        repairAt:g.events.find(e=>['task_repair','blocked_task_repair'].includes(e.kind))?.atMs??null,
+        dispatchIntentAt:g.events.find(e=>e.kind==='dispatch_intent')?.atMs??null,
+        dispatchAckAt:g.events.find(e=>e.kind==='dispatch_ack')?.atMs??null,
+        turnStartedObservedAt:observed?.atMs??null,
+        resultReceivedAt:result?.atMs??null},
+      turnObservation:interval,events:g.events};
+    if(first?.kind==='task_result')out.diagnostics=['RESULT_WITHOUT_PRIOR_EVENT'];
+    if(observed&&!result)out.diagnostics=['TURN_OBSERVATION_OPEN'];
+    if(observed&&result&&!sameTurn)out.diagnostics=['TURN_ID_MISMATCH'];
+    if(observed&&result&&sameTurn&&result.atMs<observed.atMs)out.diagnostics=['CLOCK_ORDER_INVALID'];
+    return out;
+  });
+  return {scope:'task-attempt-event-projection',attempts,unassociated};
+}
+
 function timestamp(value){
   if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(value))return null;
   const n=Date.parse(value);return millis(n)?n:null;
@@ -69,8 +113,8 @@ export function traceReport(cfg,id,{cost}={}){
     const run=db.prepare('SELECT * FROM runs WHERE id=?').get(id);
     if(!run)throw Error('Unknown run');if(run.identity!==projectIdentity(cfg))throw Error('Project configuration changed; use the original run configuration');
     const rows=db.prepare('SELECT id,at,kind,data FROM events WHERE run_id=? ORDER BY id').all(id),events=rows.map(e=>({...e,data:JSON.parse(e.data)}));
-    const controller=controllerTimeline(run,events),acceptanceCommands=commandTiming(cfg,run);
+    const controller=controllerTimeline(run,events),taskTiming=taskAttemptTimeline(events),acceptanceCommands=commandTiming(cfg,run);
     const telemetry=cost?reportedTurns(cost):null;
-    return {schemaVersion:1,projectId:cfg.projectId,runId:id,requestHash:run.digest,eventsHash:digest(rows),controller,acceptanceCommands,...(telemetry?{telemetry}:{}),measurementNotes:['Controller phases are observed state residence, including waiting; not model compute or maintenance labor.','Duplicate states do not create extra phases. Open intervals have no invented end time.','Pause duration, exact worker execution and critical path are unknown; historical task_result events lack attemptId.','Cost telemetry is a separate explicitly supplied manifest scope; roles, time overlap and labels do not bind it to this run.','Turn start can be the first reported context/usage event; wall time includes tools and waiting. Cross-host clocks are not independently verified.','Acceptance command timings cover only the latest hash-bound receipt, not every historic attempt.']};
+    return {schemaVersion:1,projectId:cfg.projectId,runId:id,requestHash:run.digest,eventsHash:digest(rows),controller,taskTiming,acceptanceCommands,...(telemetry?{telemetry}:{}),measurementNotes:['Controller phases are observed state residence, including waiting; not model compute or maintenance labor.','Duplicate states do not create extra phases. Open intervals have no invented end time.','Task timing is an event projection grouped by taskId+attemptId; historical events without attemptId remain unassociated.','Observed turn intervals are sampling boundaries only; actual agent start, model compute and critical path remain unknown.','Cost telemetry is a separate explicitly supplied manifest scope; roles, time overlap and labels do not bind it to this run.','Turn start can be the first reported context/usage event; wall time includes tools and waiting. Cross-host clocks are not independently verified.','Acceptance command timings cover only the latest hash-bound receipt, not every historic attempt.']};
   }finally{db.close();}
 }
