@@ -1,0 +1,820 @@
+{
+  "snapshotSha": "39e0b0540c9b018174955fc8a21f355bbac26c6a",
+  "verifiedAt": "2026-09-12",
+  "counts": {
+    "manifestFiles": 69,
+    "mergedEntries": 69,
+    "missing": 0,
+    "extra": 0,
+    "hashMismatches": 0,
+    "readComplete": 69
+  },
+  "benchmarkRuns": {
+    "physicalFiles": 11,
+    "independentHashes": 9,
+    "resultRecords": 179,
+    "aliases": [
+      [
+        "plugins/ruflo-cost-tracker/docs/benchmarks/runs/latest.json",
+        "2026-05-05T04-13-48-562Z.json"
+      ],
+      [
+        "plugins/ruflo-cost-tracker/docs/benchmarks/runs/codemod-latest.json",
+        "codemod-2026-05-29T21-27-54-272Z.json"
+      ]
+    ],
+    "independentResultRecords": 142,
+    "resultRecordsMeaning": "Physical files including two duplicate aliases"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/cost-tracker-smoke.yml",
+      "sha256": "28dfa630bd7076932b417b9204febdb9f3aba6c90a6d50de768dc58ddd9a4a62",
+      "bytes": 4188,
+      "lines": 99,
+      "readComplete": true,
+      "verdict": "conditional",
+      "evidence": "Ubuntu bash workflow; npm install agent-booster and optional external CLI-backed tests; no LLM baseline in CI."
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "a45ba66fa502c49ad108440536d8aa91dfe9c04575a32a01287839bee336199c",
+      "bytes": 1068,
+      "lines": 22,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 1068,
+        "lines": 22,
+        "manifestSha256": "a45ba66fa502c49ad108440536d8aa91dfe9c04575a32a01287839bee336199c"
+      }
+    },
+    {
+      "path": "package.json",
+      "sha256": "f508687e9e5317f400f1c867a8a00d9c25c818c301010058061ffcc471c57924",
+      "bytes": 6484,
+      "lines": 223,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 6484,
+        "lines": 223,
+        "manifestSha256": "f508687e9e5317f400f1c867a8a00d9c25c818c301010058061ffcc471c57924"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/.claude-plugin/plugin.json",
+      "sha256": "0a1bffa85a05f24170e59db95804ab7d692ebf1bda5fc460a0d19d1bf79976be",
+      "bytes": 1228,
+      "lines": 54,
+      "readComplete": true,
+      "verdict": "metadata-only",
+      "evidence": "Claude plugin manifest v0.26.3; declares Claude/Ruflo-specific keywords and MIT license."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/agents/cost-analyst.md",
+      "sha256": "61bbef7043819e823e5806436a5decd3896be9e8afc1733957c1e4e8bb17c1ac",
+      "bytes": 8665,
+      "lines": 99,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 8665,
+        "lines": 99,
+        "manifestSha256": "61bbef7043819e823e5806436a5decd3896be9e8afc1733957c1e4e8bb17c1ac"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/bench/booster-corpus.json",
+      "sha256": "168bab42768a5ee42fa269a5177bdf23a14d3af7594c17a19c96e565acaa64f1",
+      "bytes": 12079,
+      "lines": 245,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 12079,
+        "lines": 245,
+        "manifestSha256": "168bab42768a5ee42fa269a5177bdf23a14d3af7594c17a19c96e565acaa64f1"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/commands/ruflo-cost.md",
+      "sha256": "ec46c177b1d650cb6047dc6ee658408bb45da47bc38308e52f310feb26d3657d",
+      "bytes": 13910,
+      "lines": 163,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 13910,
+        "lines": 163,
+        "manifestSha256": "ec46c177b1d650cb6047dc6ee658408bb45da47bc38308e52f310feb26d3657d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/adrs/0001-cost-tracker-contract.md",
+      "sha256": "dca6f285f87ed7c62ce8ca23bed5c44a030ff0fbcf95e9cca30bcd0e91f7f833",
+      "bytes": 5884,
+      "lines": 104,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 5884,
+        "lines": 104,
+        "manifestSha256": "dca6f285f87ed7c62ce8ca23bed5c44a030ff0fbcf95e9cca30bcd0e91f7f833"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/adrs/0002-agentic-flow-and-agent-booster-integration.md",
+      "sha256": "8bf7badf40d108de3cb27d5f56cf77f84d6fb7dc48dea2121a5b9fa747bfeee0",
+      "bytes": 18207,
+      "lines": 183,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 18207,
+        "lines": 183,
+        "manifestSha256": "8bf7badf40d108de3cb27d5f56cf77f84d6fb7dc48dea2121a5b9fa747bfeee0"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/adrs/0003-implementation-arc-v0.5-to-v0.15.md",
+      "sha256": "03d99ba7d9c355170930c18cc33b1e82246c4f0f6530c0a74d25083b92ab450d",
+      "bytes": 8189,
+      "lines": 100,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 8189,
+        "lines": 100,
+        "manifestSha256": "03d99ba7d9c355170930c18cc33b1e82246c4f0f6530c0a74d25083b92ab450d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/0002-baseline.md",
+      "sha256": "1ff3f5ab83275cb7abe626bf41034b6252c520c354dff4e1a1bb242009559bca",
+      "bytes": 19777,
+      "lines": 322,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 19777,
+        "lines": 322,
+        "manifestSha256": "1ff3f5ab83275cb7abe626bf41034b6252c520c354dff4e1a1bb242009559bca"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-13-19-596Z.json",
+      "sha256": "efd869fbf9216ddc9a722df8659904943f348f3dfbfa64e928aa8485e66f11cd",
+      "bytes": 3921,
+      "lines": 167,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3921,
+        "lines": 167,
+        "manifestSha256": "efd869fbf9216ddc9a722df8659904943f348f3dfbfa64e928aa8485e66f11cd"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-17-26-458Z.json",
+      "sha256": "62dca5991161382fabfbbeae724b2700de0ff25071d2576b349acfdca0bbe72b",
+      "bytes": 3921,
+      "lines": 167,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3921,
+        "lines": 167,
+        "manifestSha256": "62dca5991161382fabfbbeae724b2700de0ff25071d2576b349acfdca0bbe72b"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-17-40-935Z.json",
+      "sha256": "a97967b552ca53c8d2db288b1f0a3e496826306a8b71f2195fcfa40df82a8a1e",
+      "bytes": 6940,
+      "lines": 296,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 6940,
+        "lines": 296,
+        "manifestSha256": "a97967b552ca53c8d2db288b1f0a3e496826306a8b71f2195fcfa40df82a8a1e"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-23-29-370Z.json",
+      "sha256": "fee6bd874f714d20b808fcd1edbae3bc0f9e56e13fc740a3af5502c26b29431d",
+      "bytes": 13380,
+      "lines": 558,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 13380,
+        "lines": 558,
+        "manifestSha256": "fee6bd874f714d20b808fcd1edbae3bc0f9e56e13fc740a3af5502c26b29431d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-27-25-675Z.json",
+      "sha256": "9c00b6a650d74f6b05b0c8b28d6da82a5a66373b914a97a58cf4672258e166ee",
+      "bytes": 7721,
+      "lines": 276,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 7721,
+        "lines": 276,
+        "manifestSha256": "9c00b6a650d74f6b05b0c8b28d6da82a5a66373b914a97a58cf4672258e166ee"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T03-30-00-655Z.json",
+      "sha256": "43fb20a681ef3c12a2d5d96cfa2c1645b26bc3b7286670c81a2b396c214f95a8",
+      "bytes": 20714,
+      "lines": 781,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 20714,
+        "lines": 781,
+        "manifestSha256": "43fb20a681ef3c12a2d5d96cfa2c1645b26bc3b7286670c81a2b396c214f95a8"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T04-00-21-167Z.json",
+      "sha256": "f2aa1847dbd3883349985285cf1e3f17e9bf4e6a67446b4cf65e4b07e37bccd2",
+      "bytes": 11986,
+      "lines": 417,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 11986,
+        "lines": 417,
+        "manifestSha256": "f2aa1847dbd3883349985285cf1e3f17e9bf4e6a67446b4cf65e4b07e37bccd2"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/2026-05-05T04-13-48-562Z.json",
+      "sha256": "31c6961a3b844d7bc8e99ba53a42fb465314ea7197a2e4c48616e60984b0eb4d",
+      "bytes": 32436,
+      "lines": 1173,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 32436,
+        "lines": 1173,
+        "manifestSha256": "31c6961a3b844d7bc8e99ba53a42fb465314ea7197a2e4c48616e60984b0eb4d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/codemod-2026-05-29T21-27-54-272Z.json",
+      "sha256": "855ec22aebb0b4e429c5abd128b1f7484436cd034fa2c25275eb31a9662a0b6d",
+      "bytes": 2488,
+      "lines": 120,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2488,
+        "lines": 120,
+        "manifestSha256": "855ec22aebb0b4e429c5abd128b1f7484436cd034fa2c25275eb31a9662a0b6d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/codemod-latest.json",
+      "sha256": "855ec22aebb0b4e429c5abd128b1f7484436cd034fa2c25275eb31a9662a0b6d",
+      "bytes": 2488,
+      "lines": 120,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2488,
+        "lines": 120,
+        "manifestSha256": "855ec22aebb0b4e429c5abd128b1f7484436cd034fa2c25275eb31a9662a0b6d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/docs/benchmarks/runs/latest.json",
+      "sha256": "31c6961a3b844d7bc8e99ba53a42fb465314ea7197a2e4c48616e60984b0eb4d",
+      "bytes": 32436,
+      "lines": 1173,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 32436,
+        "lines": 1173,
+        "manifestSha256": "31c6961a3b844d7bc8e99ba53a42fb465314ea7197a2e4c48616e60984b0eb4d"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/hooks/hooks.json",
+      "sha256": "aaccfefd58d85d3f5d6a5efe1936bcf8218b97eaa5592627290a62fa358383a9",
+      "bytes": 891,
+      "lines": 16,
+      "readComplete": true,
+      "verdict": "claude-specific",
+      "evidence": "Stop hook uses CLAUDE_PLUGIN_ROOT node bootstrap; Codex loading contract unverified."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/README.md",
+      "sha256": "258ef32bdef00871a24303f225fb7fc5bec33e352b62bef77aa12ab22dd2d255",
+      "bytes": 13849,
+      "lines": 181,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 13849,
+        "lines": 181,
+        "manifestSha256": "258ef32bdef00871a24303f225fb7fc5bec33e352b62bef77aa12ab22dd2d255"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/REFERENCE.md",
+      "sha256": "1ef9a29f82e28829a7e3c188a353db2adfda1e5fc31e27cd4b70ad09c5a10765",
+      "bytes": 4420,
+      "lines": 93,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 4420,
+        "lines": 93,
+        "manifestSha256": "1ef9a29f82e28829a7e3c188a353db2adfda1e5fc31e27cd4b70ad09c5a10765"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/_npx.mjs",
+      "sha256": "d7d317d68e469806325ccad4a5f11fe01f76fc7d207eb8015ee0b35b979c3ce5",
+      "bytes": 796,
+      "lines": 16,
+      "readComplete": true,
+      "verdict": "Reject",
+      "evidence": "spawnNpxSync:1-15; Windows npm shim and shell:false:4-14"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/_prices.mjs",
+      "sha256": "030e034c0fef33a1944c311db579fb202d8d6bcdb4e6bc4990abcdabb51aa178",
+      "bytes": 2523,
+      "lines": 59,
+      "readComplete": true,
+      "verdict": "Reject; formula reference only",
+      "evidence": "PRICING:13-20; modelTier:22-30; costForUsage:32-43; costAtTier:45-58"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/_sessions.mjs",
+      "sha256": "afffae696be04942741ccaf500a65bad6c17cb63336233b3f0859049e71a93c6",
+      "bytes": 2784,
+      "lines": 73,
+      "readComplete": true,
+      "verdict": "Reject; parseDurationMs may be rewritten",
+      "evidence": "npx memory I/O:17-49; loadSessions:51-59; sessionTs/parseDurationMs:61-72"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/anomaly.mjs",
+      "sha256": "c1cf04387a82b81165fc1829fac8afc8fe8367f4bea942e2adf3d0545d135177",
+      "bytes": 9285,
+      "lines": 225,
+      "readComplete": true,
+      "verdict": "Borrow MAD algorithm",
+      "evidence": "median:56-62; filtering/insufficient guard:64-111; median/MAD/z-score:113-142; alert/output:144-224"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/bench.mjs",
+      "sha256": "9cf37ab79a5e064f376a650f656b72322def272c25a24affa3236051bcef7e2e",
+      "bytes": 19515,
+      "lines": 423,
+      "readComplete": true,
+      "verdict": "borrow-only",
+      "evidence": "Writes benchmark snapshots; booster dependency must resolve from cwd; optional gcloud/fetch Gemini or Anthropic network paths not run."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/budget.mjs",
+      "sha256": "da467ddf416a115649855c465ff207c8c33e9942acb126f3df6174075ef0cd99",
+      "bytes": 9226,
+      "lines": 217,
+      "readComplete": true,
+      "verdict": "Reject; alert ladder reference only",
+      "evidence": "memory writes/reads:32-90; period and alert logic:92-117; set/check and HARD_STOP:119-202; CLI:204-216"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/burn.mjs",
+      "sha256": "ae3398dc6457a68e1e926f1b717a9f17d1928db11f4962a78127ab2756cc3725",
+      "bytes": 8353,
+      "lines": 201,
+      "readComplete": true,
+      "verdict": "Borrow pure time-bucket algorithm",
+      "evidence": "duration validation:54-68; session window/binning:70-97; prior mean/delta/alert:98-126; payload:128-160"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/compact.mjs",
+      "sha256": "0f0950cb794f0df48b230bcc6fd3064468688535a93c2943b809036d90f9f786",
+      "bytes": 6053,
+      "lines": 154,
+      "readComplete": true,
+      "verdict": "borrow-design",
+      "evidence": "Node check passed; inert bridgeUnavailable path observed; dynamic integration import and HEALTH_PORT mutation remain external."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/conversation.mjs",
+      "sha256": "22cd36e6001db02c350480621caba341459bafda6ec85af8db2d49d22e732f91",
+      "bytes": 2981,
+      "lines": 77,
+      "readComplete": true,
+      "verdict": "Reject; aggregation shape reference",
+      "evidence": "session loader:12-16,25-35; total/tier aggregation:37-43; JSON/Markdown contracts:45-74"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/counterfactual.mjs",
+      "sha256": "1119c86f9e14c8a42b70ce52074c9849f79c48d59428c23fb30a5d548e1ac8c5",
+      "bytes": 7391,
+      "lines": 189,
+      "readComplete": true,
+      "verdict": "Reject; bundle summation reference only",
+      "evidence": "baseline and loader imports:35-54; sumSessionTokens:65-75; dollar counterfactual:77-142; output:144-186"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/diff.mjs",
+      "sha256": "dafb9f6cc080169ff5cd9c64f66529dd776ec1ea24981234da83dcd780c4294b",
+      "bytes": 12878,
+      "lines": 281,
+      "readComplete": true,
+      "verdict": "Borrow pure diff algorithm",
+      "evidence": "argument/threshold parse:30-70; snapshot validation:72-99; diffNumber/diffMap:101-118; delta/alert contract:121-202"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/export.mjs",
+      "sha256": "7d4f2d4938ee6e2da80cde4ba4bfbdfa9efdf575239a5aa763bd23e4c8bed816",
+      "bytes": 7095,
+      "lines": 155,
+      "readComplete": true,
+      "verdict": "borrow-with-gates",
+      "evidence": "Prometheus formatting is reusable; --prometheus writes arbitrary path and --webhook POSTs payload; external loader not run."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/federation.mjs",
+      "sha256": "78e1c947aaf28f38eca0136aa08ac09402712ff0ef7a88797ae4c5a60f52ae97",
+      "bytes": 5342,
+      "lines": 133,
+      "readComplete": true,
+      "verdict": "design-only",
+      "evidence": "npx memory list/retrieve for federation-spend; upstream says events not yet emitted; no runtime call."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/health.mjs",
+      "sha256": "c6f65b6691508d6001f0e763c2774cfa31ab901c7d95a93b770510f63e14d282",
+      "bytes": 9301,
+      "lines": 230,
+      "readComplete": true,
+      "verdict": "borrow-design",
+      "evidence": "Parallel four-check composition and max exit semantics read; each child depends on external memory CLI and has no aggregate timeout."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/outcome.mjs",
+      "sha256": "26b4dfc12e08993f9ce3bcb531b12c969bbcd5d159734de2a1cb4c4d239a3158",
+      "bytes": 1610,
+      "lines": 44,
+      "readComplete": true,
+      "verdict": "incompatible-direct",
+      "evidence": "Validated outcome enum then npx @claude-flow/cli@latest hooks model-outcome; external write, not run."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/projection.mjs",
+      "sha256": "7c4711da0fa436a6fc40b83b02cc4d1444267861a5ce384411c0bbcf09b3a993",
+      "bytes": 8013,
+      "lines": 206,
+      "readComplete": true,
+      "verdict": "Reject; token-window shape only",
+      "evidence": "budget memory lookup:50-61; window rate/horizons:77-117; dollar exhaustion:119-159; output:161-205"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/ruflo-hook.cjs",
+      "sha256": "6a9706e36b5d22e5e05eaaeb5fc493b87a39fd3d9fa1d7b8a3b59b5c9c544c7c",
+      "bytes": 1707,
+      "lines": 57,
+      "readComplete": true,
+      "verdict": "borrow-with-adapter",
+      "evidence": "Node shim drains stdin, invokes track with quiet/30s timeout, always exits 0; track target remains Claude-specific."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/session.mjs",
+      "sha256": "32250798f9943f88ec52943d6b20d63c440b1108cb3ca3b5576e525482786902",
+      "bytes": 8799,
+      "lines": 226,
+      "readComplete": true,
+      "verdict": "Reject",
+      "evidence": "Claude JSONL scan:52-90; message usage/cost:92-121; percentile/top output:152-222"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/smoke.sh",
+      "sha256": "7daec1472892d37eb3d5447e597e2c5c2f32e0791b13642f8481890b7a1702c4",
+      "bytes": 32545,
+      "lines": 659,
+      "readComplete": true,
+      "verdict": "static-only",
+      "evidence": "44-step bash grep/file/node-check gate; not executed because Windows environment and no need to claim runtime coverage."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/summary.mjs",
+      "sha256": "5eb33f9b5a1e277bc9f3750fe87282f0fb0d5046474f78f29827a7d0f276dfaa",
+      "bytes": 8888,
+      "lines": 222,
+      "readComplete": true,
+      "verdict": "Reject; token-class presentation reference",
+      "evidence": "git side-effect read:32-56; session aggregation:66-109; federation aggregation:111-145; output contract:123-146,151-221"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/test-health-integration.mjs",
+      "sha256": "2b87ca8d28dff55c19f0d9a745d3e3fcaa5992cb36063c170d8f71cf864d5c86",
+      "bytes": 8162,
+      "lines": 211,
+      "readComplete": true,
+      "verdict": "blocked-external",
+      "evidence": "Synthetic cases are meaningful, but memInit/memStore call npx -y CLI and write AgentDB; intentionally not run."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/test-hooks.mjs",
+      "sha256": "6ad74616258850e17e06c786fdb03a14a26f714c7c4b0938bef6bd3e1ac17024",
+      "bytes": 2720,
+      "lines": 79,
+      "readComplete": true,
+      "verdict": "verified-wiring-only",
+      "evidence": "3/3 passed with temp cwd, malformed/empty/valid stdin, TRACK_DRY_RUN=1; explicitly not a tracking behavior test."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/track.mjs",
+      "sha256": "68c851857ee185511fbe680c36513186f9ccf766518c94c9f6a9dc1d76c16db9",
+      "bytes": 7213,
+      "lines": 176,
+      "readComplete": true,
+      "verdict": "Reject",
+      "evidence": "Claude project discovery:23-45; JSONL usage/cost aggregation:47-93; memory/file writes:95-117,135-142; main:119-176"
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/scripts/trend.mjs",
+      "sha256": "a3d3248223ad83e69143f1051da6c38203c8a16a9b394cac29aa9bba7a38dd94",
+      "bytes": 6171,
+      "lines": 142,
+      "readComplete": true,
+      "verdict": "borrow",
+      "evidence": "Read-only committed runs trend; JSON run produced 8 runs and exit 0."
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-anomaly/SKILL.md",
+      "sha256": "397bf2a60449f5dff032e36ac0601bc5bbda37c83241fe3b3c08d7b8aed78392",
+      "bytes": 3763,
+      "lines": 93,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3763,
+        "lines": 93,
+        "manifestSha256": "397bf2a60449f5dff032e36ac0601bc5bbda37c83241fe3b3c08d7b8aed78392"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-benchmark/SKILL.md",
+      "sha256": "0e58f5ee31e9c6226b8a471960b369b1546200b4e82c1dc8ed61faa61317b994",
+      "bytes": 3006,
+      "lines": 60,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3006,
+        "lines": 60,
+        "manifestSha256": "0e58f5ee31e9c6226b8a471960b369b1546200b4e82c1dc8ed61faa61317b994"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-booster-edit/SKILL.md",
+      "sha256": "253b6323e79f8aa56316bab7e8653fff9b12bc48da4353dad8fd1d44a020c067",
+      "bytes": 5804,
+      "lines": 86,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 5804,
+        "lines": 86,
+        "manifestSha256": "253b6323e79f8aa56316bab7e8653fff9b12bc48da4353dad8fd1d44a020c067"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-booster-route/SKILL.md",
+      "sha256": "0774f9db48d9c6750688e7398d6fb3ae8c2b9e3758b28d78536e8baa83b95113",
+      "bytes": 2749,
+      "lines": 43,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2749,
+        "lines": 43,
+        "manifestSha256": "0774f9db48d9c6750688e7398d6fb3ae8c2b9e3758b28d78536e8baa83b95113"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-budget-check/SKILL.md",
+      "sha256": "3f5b16b1ddc80444e9e625eed132fcd3cca0f0f38c8f2af06c5a65feaa7d4a28",
+      "bytes": 2619,
+      "lines": 66,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2619,
+        "lines": 66,
+        "manifestSha256": "3f5b16b1ddc80444e9e625eed132fcd3cca0f0f38c8f2af06c5a65feaa7d4a28"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-burn/SKILL.md",
+      "sha256": "12e915c8428cd4edf24c5575fdbb19045c178b374dde8cce9da3eae2fd4cac85",
+      "bytes": 3315,
+      "lines": 77,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3315,
+        "lines": 77,
+        "manifestSha256": "12e915c8428cd4edf24c5575fdbb19045c178b374dde8cce9da3eae2fd4cac85"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-compact-context/SKILL.md",
+      "sha256": "03b6b6ca0a5edda01ec5ed184511c18d3f2583205046c38c0ba6c4c3723a5984",
+      "bytes": 2658,
+      "lines": 38,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2658,
+        "lines": 38,
+        "manifestSha256": "03b6b6ca0a5edda01ec5ed184511c18d3f2583205046c38c0ba6c4c3723a5984"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-conversation/SKILL.md",
+      "sha256": "bf639eb153d121d23c4124969dfa56a83019d075ff08c1764508fc1be260879b",
+      "bytes": 1647,
+      "lines": 39,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 1647,
+        "lines": 39,
+        "manifestSha256": "bf639eb153d121d23c4124969dfa56a83019d075ff08c1764508fc1be260879b"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-counterfactual/SKILL.md",
+      "sha256": "f02b92720bdc8ca9cc6125a097e6ea96268ce75e9facd2505e20961d11a42295",
+      "bytes": 3168,
+      "lines": 55,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3168,
+        "lines": 55,
+        "manifestSha256": "f02b92720bdc8ca9cc6125a097e6ea96268ce75e9facd2505e20961d11a42295"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-diff/SKILL.md",
+      "sha256": "edb9fd283f38be451693dca559307c0019f25e8efebaff48404cf1bfca810f3a",
+      "bytes": 5029,
+      "lines": 132,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 5029,
+        "lines": 132,
+        "manifestSha256": "edb9fd283f38be451693dca559307c0019f25e8efebaff48404cf1bfca810f3a"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-export/SKILL.md",
+      "sha256": "bbd08fe46a07e4423631f2091100d0e5c262a9c4d60886988f4c6a2202ce44b2",
+      "bytes": 2762,
+      "lines": 60,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2762,
+        "lines": 60,
+        "manifestSha256": "bbd08fe46a07e4423631f2091100d0e5c262a9c4d60886988f4c6a2202ce44b2"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-federation/SKILL.md",
+      "sha256": "789188e5882d16f97ae8b344004860865c5574031966c753674ad7c566a21273",
+      "bytes": 2367,
+      "lines": 56,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2367,
+        "lines": 56,
+        "manifestSha256": "789188e5882d16f97ae8b344004860865c5574031966c753674ad7c566a21273"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-health/SKILL.md",
+      "sha256": "eb23b3843aa78d5aa007007a3c1e7446e50831f37279f71ab4e6f34f69eabd5f",
+      "bytes": 3647,
+      "lines": 93,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3647,
+        "lines": 93,
+        "manifestSha256": "eb23b3843aa78d5aa007007a3c1e7446e50831f37279f71ab4e6f34f69eabd5f"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-optimize/SKILL.md",
+      "sha256": "2dfc28cd77efd75ba5d1905896fb57116e9a3c5fb2d8f2dcae83ee22ca710919",
+      "bytes": 4002,
+      "lines": 48,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 4002,
+        "lines": 48,
+        "manifestSha256": "2dfc28cd77efd75ba5d1905896fb57116e9a3c5fb2d8f2dcae83ee22ca710919"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-projection/SKILL.md",
+      "sha256": "8ca132dcb46976388a858a4e8ae9eaafa216af6f473f764bd9cfb076fcccfa5a",
+      "bytes": 2814,
+      "lines": 62,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2814,
+        "lines": 62,
+        "manifestSha256": "8ca132dcb46976388a858a4e8ae9eaafa216af6f473f764bd9cfb076fcccfa5a"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-report/SKILL.md",
+      "sha256": "c369ff12096c41698f2df686603ded523b459df431916adbbe5337b4375d4ead",
+      "bytes": 3329,
+      "lines": 37,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3329,
+        "lines": 37,
+        "manifestSha256": "c369ff12096c41698f2df686603ded523b459df431916adbbe5337b4375d4ead"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-session/SKILL.md",
+      "sha256": "a3ba42dd177662b5a4ac7d48d76e7e77a3ada391b85d65ec661f7d34deb3feff",
+      "bytes": 3147,
+      "lines": 88,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3147,
+        "lines": 88,
+        "manifestSha256": "a3ba42dd177662b5a4ac7d48d76e7e77a3ada391b85d65ec661f7d34deb3feff"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-summary/SKILL.md",
+      "sha256": "675ff2dad3c28b3719f87c20e88d04e73ef8eb3b3fb49ee321d90a648cc0ad46",
+      "bytes": 2388,
+      "lines": 75,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 2388,
+        "lines": 75,
+        "manifestSha256": "675ff2dad3c28b3719f87c20e88d04e73ef8eb3b3fb49ee321d90a648cc0ad46"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-track/SKILL.md",
+      "sha256": "730ae885a181a4a076cc04c25e1d101cc392bcf52d216ac0f4aea9d402574097",
+      "bytes": 3101,
+      "lines": 80,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 3101,
+        "lines": 80,
+        "manifestSha256": "730ae885a181a4a076cc04c25e1d101cc392bcf52d216ac0f4aea9d402574097"
+      }
+    },
+    {
+      "path": "plugins/ruflo-cost-tracker/skills/cost-trend/SKILL.md",
+      "sha256": "752a5df3a480ebccb1263dcc96300b22cb39231a651752f2a27006e046344831",
+      "bytes": 1997,
+      "lines": 45,
+      "readComplete": true,
+      "verdict": "documented-source",
+      "evidence": {
+        "bytes": 1997,
+        "lines": 45,
+        "manifestSha256": "752a5df3a480ebccb1263dcc96300b22cb39231a651752f2a27006e046344831"
+      }
+    }
+  ]
+}

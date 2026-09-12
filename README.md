@@ -115,6 +115,7 @@ $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 
 - [与旧 PM–TL 链、单 Agent、原生子 Agent 的比较](docs/comparison.md)
 - [本轮规模验证与完整成本口径](docs/dispatch-scale-results-20260912.md)、[Ruflo 只读评估](docs/ruflo-assessment-20260912.md)
+- [Ruflo 成本模块全量评估与实际复用](docs/ruflo-cost-assessment-20260912.md)、[恋语真实任务的成本与耗时分账](docs/ruflo-real-task-cost-20260912.md)：显式 turn 采集、零基线比较，定位长上下文和管理开销。
 - [架构、数据流与恢复边界](docs/architecture.md)
 - [Skill 入口](skills/codex-project-workbench/SKILL.md)、[工程师交付格式](skills/codex-project-workbench/references/worker.md)
 - [复用与许可证依据](docs/reuse-decision.md)、[实现契约](docs/implementation-contract.md)

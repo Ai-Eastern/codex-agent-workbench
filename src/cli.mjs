@@ -5,16 +5,22 @@ import {configFrom,readJson,safePath} from './contracts.mjs';
 import {prepare,status,pause,advance,listRuns,knowledge,promptFor,getPacket,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
+import {costReport,costDiff} from './cost-report.mjs';
 
 export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['prepare','preflight','start','continue','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio'],
+    commands:['prepare','preflight','start','continue','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff'],
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
   };
   const command=args.shift(),opts={};
   while(args.length){const key=args.shift();if(!key.startsWith('--')||!args.length)throw Error('Use --name value arguments');opts[key.slice(2)]=args.shift();}
+  if(command==='cost-report'||command==='cost-diff'){
+    const result=command==='cost-report'?await costReport(readJson(opts.manifest)):costDiff(readJson(opts.baseline),readJson(opts.current));
+    if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.complete};}
+    return result;
+  }
   if(command==='release-portfolio')return releasePortfolioBarrier(opts.barrier);
   if(command==='portfolio'){
     const projects=readJson(opts.registry).projects;

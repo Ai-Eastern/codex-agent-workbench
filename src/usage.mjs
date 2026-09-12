@@ -1,29 +1,23 @@
-// Read reported Codex rollout counters; these are telemetry, not a billing API.
-const fields=['input_tokens','cached_input_tokens','output_tokens','reasoning_output_tokens','total_tokens'];
+// Read Codex rollout telemetry; this is not a billing API.
+const fields=['input_tokens','cached_input_tokens','cache_write_input_tokens','output_tokens','reasoning_output_tokens','total_tokens'];
+const required=['input_tokens','cached_input_tokens','output_tokens','reasoning_output_tokens','total_tokens'];
 const zero=()=>Object.fromEntries(fields.map(k=>[k,0]));
+const valid=u=>u&&required.every(k=>Object.prototype.hasOwnProperty.call(u,k)&&Number.isSafeInteger(u[k])&&u[k]>=0)&&(!Object.prototype.hasOwnProperty.call(u,'cache_write_input_tokens')||Number.isSafeInteger(u.cache_write_input_tokens)&&u.cache_write_input_tokens>=0)&&u.input_tokens+u.output_tokens===u.total_tokens&&u.cached_input_tokens<=u.input_tokens&&(u.cache_write_input_tokens??0)<=u.input_tokens&&u.reasoning_output_tokens<=u.output_tokens;
+const normalize=u=>Object.fromEntries(fields.map(k=>[k,u?.[k]??0]));
+const add=(a,b)=>{for(const k of fields){const n=a[k]+b[k];if(!Number.isSafeInteger(n)){return false;}a[k]=n;}return true;};
+const same=(a,b)=>fields.every(k=>a[k]===b[k]);
 export async function summarizeUsage(records,{turnIds}={}){
   let current=null,previous=zero();const turns=new Map(),diagnostics=[];
-  const ensure=id=>{if(!turns.has(id))turns.set(id,{id,model:null,startedAt:null,finishedAt:null,usageEvents:0,reported:zero(),diagnostics:[]});return turns.get(id);};
-  for await(const r of records){
-    const p=r.payload??{};
-    if(r.type==='turn_context'){current=p.turn_id;const t=ensure(current);t.model=p.model;t.startedAt??=r.timestamp;}
+  const ensure=id=>{if(!id)return null;if(!turns.has(id))turns.set(id,{id,model:null,startedAt:null,finishedAt:null,usageEvents:0,reported:zero(),responses:[],diagnostics:[],legacyDiagnostics:[],_seen:new Map(),_attrTotal:zero(),_lastTurnTotal:null,attrInvalid:false});return turns.get(id);};
+  for await(const r of records){const p=r.payload??{};
+    if(r.type==='turn_context'&&p.turn_id){current=p.turn_id;const t=ensure(current);t.model=p.model;t.startedAt??=r.timestamp;}
+    if(r.type==='token_usage_record'){const t=ensure(p.turn_id),u=p.usage,tu=p.turn_token_usage;if(!t){if(!turnIds)diagnostics.push('record_missing_turn_id');continue;}if(p.model&&!t.model)t.model=p.model;if(!t.startedAt)t.startedAt=r.timestamp;if(!p.response_id||!valid(u)||!valid(tu)){t.attrInvalid=true;t.diagnostics.push('invalid_usage_record');continue;}const normalized=normalize(u),turnTotal=normalize(tu),prior=t._seen.get(p.response_id);if(prior){if(!same(prior.usage,normalized))t.diagnostics.push('conflicting_duplicate');else if(!same(prior.turnTotal,turnTotal))t.diagnostics.push('conflicting_duplicate_turn_total');continue;}t._seen.set(p.response_id,{usage:normalized,turnTotal});t.responses.push({responseId:p.response_id,response_id:p.response_id,timestamp:r.timestamp??null,model:p.model??t.model??null,usage:normalized});if(!add(t._attrTotal,normalized))t.diagnostics.push('aggregate_overflow');t._lastTurnTotal=turnTotal;continue;}
     if(r.type!=='event_msg')continue;
     if(p.type==='task_started'&&p.turn_id){current=p.turn_id;ensure(current).startedAt??=r.timestamp;}
-    if(['task_complete','task_completed','turn_aborted'].includes(p.type)&&current){const t=ensure(p.turn_id??current);t.finishedAt=r.timestamp;if(p.type==='turn_aborted')t.diagnostics.push('aborted');}
-    if(p.type!=='token_count'||!current)continue;
-    const t=ensure(current),u=p.info?.total_token_usage;
-    if(!u){t.diagnostics.push('missing_usage');continue;}
-    const next=Object.fromEntries(fields.map(k=>[k,u[k]??null]));
-    if(fields.some(k=>!Number.isSafeInteger(next[k])||next[k]<0)){t.diagnostics.push('invalid_counter');continue;}
-    if(next.input_tokens+next.output_tokens!==next.total_tokens||next.cached_input_tokens>next.input_tokens||next.reasoning_output_tokens>next.output_tokens){t.diagnostics.push('inconsistent_counter');previous=next;continue;}
-    const delta=Object.fromEntries(fields.map(k=>[k,next[k]-previous[k]]));previous=next;t.usageEvents++;
-    if(fields.some(k=>delta[k]<0)){t.diagnostics.push('counter_reset');continue;}
-    for(const k of fields)t.reported[k]+=delta[k];
-    t.firstUsageAt??=r.timestamp;t.lastUsageAt=r.timestamp;
+    if(['task_complete','task_completed','turn_aborted'].includes(p.type)){const id=p.turn_id??current,t=ensure(id);if(t){t.finishedAt=r.timestamp;if(p.type==='turn_aborted')t.diagnostics.push('aborted');}if(p.turn_id)current=p.turn_id;}
+    if(p.type!=='token_count'||!current)continue;const t=ensure(current),raw=p.info?.total_token_usage;if(!raw){t.legacyDiagnostics.push('missing_usage');continue;}if(!valid(raw)){t.legacyDiagnostics.push('invalid_counter');continue;}const next=normalize(raw),delta=fields.map(k=>next[k]-previous[k]);previous=next;t.usageEvents++;if(delta.some(n=>n<0)){t.legacyDiagnostics.push('counter_reset');continue;}if(!add(t.reported,Object.fromEntries(fields.map((k,i)=>[k,delta[i]]))))t.legacyDiagnostics.push('aggregate_overflow');t.firstUsageAt??=r.timestamp;t.lastUsageAt=r.timestamp;
   }
-  const selected=[...turns.values()].filter(t=>!turnIds||turnIds.includes(t.id));const reported=zero();
-  for(const t of selected){if(!t.usageEvents)t.diagnostics.push('no_usage_events');for(const k of fields)reported[k]+=t.reported[k];for(const d of t.diagnostics)diagnostics.push(`${t.id}:${d}`);}
-  if(!selected.length)diagnostics.push('no_selected_turns');
-  const coherent=diagnostics.length===0;
-  return {scope:'reported-rollout-telemetry',coherent,allTurnsTerminal:selected.length>0&&selected.every(t=>t.finishedAt),reported:coherent?reported:null,knownReportedLowerBound:reported,diagnostics,turns:selected};
+  const requested=turnIds?new Set(turnIds):null;if(requested)for(const id of requested)if(!turns.has(id))diagnostics.push(`${id}:missing_turn`);const selected=[...turns.values()].filter(t=>!requested||requested.has(t.id));const reported=zero(),knownReportedLowerBound=zero();
+  for(const t of selected){if(t.responses.length||t.attrInvalid){if(!t._lastTurnTotal)t.diagnostics.push('missing_turn_token_usage');else if(!same(t._attrTotal,t._lastTurnTotal))t.diagnostics.push('response_sum_differs_from_turn_total');t.reported=t._attrTotal;}else{if(!t.usageEvents)t.legacyDiagnostics.push('no_usage_events');t.diagnostics.push(...t.legacyDiagnostics);}if(!t.finishedAt)t.diagnostics.push('unfinished_turn');if(!add(knownReportedLowerBound,t.reported)||!add(reported,t.reported))t.diagnostics.push('aggregate_overflow');for(const d of t.diagnostics)diagnostics.push(`${t.id}:${d}`);}
+  if(!selected.length)diagnostics.push('no_selected_turns');const coherent=diagnostics.length===0;const hasAttr=selected.some(t=>t.responses.length||t.attrInvalid),hasLegacy=selected.some(t=>!t.responses.length&&!t.attrInvalid);const measurementMethod=hasAttr?(hasLegacy?'attributed-response-usage-with-legacy-fallback':'attributed-response-usage'):'legacy-token-count';const turnsOut=selected.map(t=>{const{_seen,_attrTotal,_lastTurnTotal,legacyDiagnostics,attrInvalid,...out}=t;return{...out,measurementMethod:t.responses.length||t.attrInvalid?'attributed-response-usage':'legacy-token-count'}});return{scope:'reported-rollout-telemetry',measurementMethod,coherent,allTurnsTerminal:selected.length>0&&selected.every(t=>t.finishedAt),reported:coherent?reported:null,knownReportedLowerBound,diagnostics,turns:turnsOut};
 }

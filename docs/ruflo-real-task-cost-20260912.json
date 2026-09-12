@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-09-12T06:23:17.386Z",
+  "scope": "This authorized request only; explicit turn selection; current maintainer turn unfinished",
+  "complete": false,
+  "product": {
+    "route": "direct",
+    "workers": 0,
+    "positiveSftSeeds": 6,
+    "negativeReviewRecords": 6,
+    "acceptance": {
+      "passed": true,
+      "checks": 1,
+      "checkGroups": 6,
+      "elapsedMs": 84,
+      "humanVerified": false
+    },
+    "knowledge": {
+      "captured": 1
+    },
+    "trained": false
+  },
+  "metrics": {
+    "pmTotalMs": 536938,
+    "pmBeforeReleaseMs": 211001,
+    "releaseToAcceptanceMs": 235719,
+    "acceptanceToTurnEndMs": 90218,
+    "collectorMs": 669.4866999999999,
+    "gmProductTokenShare": 0.13941046307843713
+  },
+  "byKind": [
+    {
+      "key": "framework",
+      "complete": false,
+      "reported": null,
+      "knownReportedLowerBound": {
+        "input_tokens": 14200054,
+        "cached_input_tokens": 13627648,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 81926,
+        "reasoning_output_tokens": 15287,
+        "total_tokens": 14281980
+      },
+      "responses": 127
+    },
+    {
+      "key": "product",
+      "complete": true,
+      "reported": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "responses": 36
+    },
+    {
+      "key": "coordination",
+      "complete": true,
+      "reported": {
+        "input_tokens": 1212239,
+        "cached_input_tokens": 1155072,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 9133,
+        "reasoning_output_tokens": 2321,
+        "total_tokens": 1221372
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 1212239,
+        "cached_input_tokens": 1155072,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 9133,
+        "reasoning_output_tokens": 2321,
+        "total_tokens": 1221372
+      },
+      "responses": 16
+    }
+  ],
+  "byModel": [
+    {
+      "key": "gpt-6-astra",
+      "complete": false,
+      "reported": null,
+      "knownReportedLowerBound": {
+        "input_tokens": 6252954,
+        "cached_input_tokens": 5932544,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 46330,
+        "reasoning_output_tokens": 11087,
+        "total_tokens": 6299284
+      },
+      "responses": 58
+    },
+    {
+      "key": "gpt-5.6-sol",
+      "complete": true,
+      "reported": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "responses": 36
+    },
+    {
+      "key": "gpt-5.6-luna",
+      "complete": true,
+      "reported": {
+        "input_tokens": 9159339,
+        "cached_input_tokens": 8850176,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 44729,
+        "reasoning_output_tokens": 6521,
+        "total_tokens": 9204068
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 9159339,
+        "cached_input_tokens": 8850176,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 44729,
+        "reasoning_output_tokens": 6521,
+        "total_tokens": 9204068
+      },
+      "responses": 85
+    }
+  ],
+  "phases": [
+    {
+      "role": "maintainer",
+      "project": "workbench",
+      "phase": "assessment-adaptation-coordination-reporting",
+      "complete": false,
+      "model": "gpt-6-astra",
+      "responses": 42,
+      "reported": null,
+      "knownReportedLowerBound": {
+        "input_tokens": 5040715,
+        "cached_input_tokens": 4777472,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 37197,
+        "reasoning_output_tokens": 8766,
+        "total_tokens": 5077912
+      },
+      "averageInputPerResponse": 120017.02380952382,
+      "inputReuseRatio": 0.9477766547007717,
+      "activity": {
+        "toolCalls": 41,
+        "toolResults": 40,
+        "toolResultCharacters": 286464,
+        "byTool": {
+          "exec": 33,
+          "spawn_agent": 3,
+          "followup_task": 4,
+          "send_message": 1
+        }
+      },
+      "startedAt": "2026-09-12T06:04:06.774Z",
+      "finishedAt": null
+    },
+    {
+      "role": "PM",
+      "project": "LianYu",
+      "phase": "product-implementation-and-acceptance",
+      "complete": true,
+      "model": "gpt-5.6-sol",
+      "responses": 36,
+      "reported": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 7505963,
+        "cached_input_tokens": 7410048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33643,
+        "reasoning_output_tokens": 12368,
+        "total_tokens": 7539606
+      },
+      "averageInputPerResponse": 208498.97222222222,
+      "inputReuseRatio": 0.9872214930982207,
+      "activity": {
+        "toolCalls": 35,
+        "toolResults": 36,
+        "toolResultCharacters": 163654,
+        "byTool": {
+          "exec": 35
+        }
+      },
+      "startedAt": "2026-09-12T06:13:54.836Z",
+      "finishedAt": "2026-09-12T06:22:51.774Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "docs-assessment",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 13,
+      "reported": {
+        "input_tokens": 2048879,
+        "cached_input_tokens": 1995520,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 7278,
+        "reasoning_output_tokens": 1535,
+        "total_tokens": 2056157
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 2048879,
+        "cached_input_tokens": 1995520,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 7278,
+        "reasoning_output_tokens": 1535,
+        "total_tokens": 2056157
+      },
+      "averageInputPerResponse": 157606.07692307694,
+      "inputReuseRatio": 0.9739569784257636,
+      "activity": {
+        "toolCalls": 12,
+        "toolResults": 12,
+        "toolResultCharacters": 116080,
+        "byTool": {
+          "exec": 12
+        }
+      },
+      "startedAt": "2026-09-12T06:07:08.568Z",
+      "finishedAt": "2026-09-12T06:09:16.090Z"
+    },
+    {
+      "role": "GM",
+      "project": "LianYu",
+      "phase": "product-selection",
+      "complete": true,
+      "model": "gpt-6-astra",
+      "responses": 10,
+      "reported": {
+        "input_tokens": 676232,
+        "cached_input_tokens": 626432,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 6644,
+        "reasoning_output_tokens": 1790,
+        "total_tokens": 682876
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 676232,
+        "cached_input_tokens": 626432,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 6644,
+        "reasoning_output_tokens": 1790,
+        "total_tokens": 682876
+      },
+      "averageInputPerResponse": 67623.2,
+      "inputReuseRatio": 0.9263566350010056,
+      "activity": {
+        "toolCalls": 9,
+        "toolResults": 10,
+        "toolResultCharacters": 103514,
+        "byTool": {
+          "exec": 9
+        }
+      },
+      "startedAt": "2026-09-12T06:05:48.718Z",
+      "finishedAt": "2026-09-12T06:08:41.976Z"
+    },
+    {
+      "role": "GM",
+      "project": "LianYu",
+      "phase": "product-handoff",
+      "complete": true,
+      "model": "gpt-6-astra",
+      "responses": 6,
+      "reported": {
+        "input_tokens": 536007,
+        "cached_input_tokens": 528640,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2489,
+        "reasoning_output_tokens": 531,
+        "total_tokens": 538496
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 536007,
+        "cached_input_tokens": 528640,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2489,
+        "reasoning_output_tokens": 531,
+        "total_tokens": 538496
+      },
+      "averageInputPerResponse": 89334.5,
+      "inputReuseRatio": 0.9862557765103814,
+      "activity": {
+        "toolCalls": 5,
+        "toolResults": 6,
+        "toolResultCharacters": 8357,
+        "byTool": {
+          "exec": 5
+        }
+      },
+      "startedAt": "2026-09-12T06:13:18.727Z",
+      "finishedAt": "2026-09-12T06:14:20.075Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "core-assessment",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 14,
+      "reported": {
+        "input_tokens": 974465,
+        "cached_input_tokens": 901632,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8061,
+        "reasoning_output_tokens": 679,
+        "total_tokens": 982526
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 974465,
+        "cached_input_tokens": 901632,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8061,
+        "reasoning_output_tokens": 679,
+        "total_tokens": 982526
+      },
+      "averageInputPerResponse": 69604.64285714286,
+      "inputReuseRatio": 0.9252584751632947,
+      "activity": {
+        "toolCalls": 13,
+        "toolResults": 13,
+        "toolResultCharacters": 174940,
+        "byTool": {
+          "exec": 13
+        }
+      },
+      "startedAt": "2026-09-12T06:06:32.797Z",
+      "finishedAt": "2026-09-12T06:08:40.430Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "usage-adapter-implementation",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 22,
+      "reported": {
+        "input_tokens": 2535487,
+        "cached_input_tokens": 2485760,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 10236,
+        "reasoning_output_tokens": 1685,
+        "total_tokens": 2545723
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 2535487,
+        "cached_input_tokens": 2485760,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 10236,
+        "reasoning_output_tokens": 1685,
+        "total_tokens": 2545723
+      },
+      "averageInputPerResponse": 115249.40909090909,
+      "inputReuseRatio": 0.9803875941781599,
+      "activity": {
+        "toolCalls": 21,
+        "toolResults": 21,
+        "toolResultCharacters": 92384,
+        "byTool": {
+          "exec": 21
+        }
+      },
+      "startedAt": "2026-09-12T06:12:43.241Z",
+      "finishedAt": "2026-09-12T06:15:37.024Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "usage-adapter-correction",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 6,
+      "reported": {
+        "input_tokens": 807783,
+        "cached_input_tokens": 800256,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3642,
+        "reasoning_output_tokens": 290,
+        "total_tokens": 811425
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 807783,
+        "cached_input_tokens": 800256,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3642,
+        "reasoning_output_tokens": 290,
+        "total_tokens": 811425
+      },
+      "averageInputPerResponse": 134630.5,
+      "inputReuseRatio": 0.990681903431986,
+      "activity": {
+        "toolCalls": 5,
+        "toolResults": 5,
+        "toolResultCharacters": 3199,
+        "byTool": {
+          "exec": 5
+        }
+      },
+      "startedAt": "2026-09-12T06:16:11.003Z",
+      "finishedAt": "2026-09-12T06:20:22.155Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "integration-assessment",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 24,
+      "reported": {
+        "input_tokens": 1992324,
+        "cached_input_tokens": 1885184,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 10972,
+        "reasoning_output_tokens": 1673,
+        "total_tokens": 2003296
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 1992324,
+        "cached_input_tokens": 1885184,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 10972,
+        "reasoning_output_tokens": 1673,
+        "total_tokens": 2003296
+      },
+      "averageInputPerResponse": 83013.5,
+      "inputReuseRatio": 0.9462236062005979,
+      "activity": {
+        "toolCalls": 23,
+        "toolResults": 23,
+        "toolResultCharacters": 256566,
+        "byTool": {
+          "exec": 23
+        }
+      },
+      "startedAt": "2026-09-12T06:06:44.455Z",
+      "finishedAt": "2026-09-12T06:09:42.895Z"
+    },
+    {
+      "role": "research-implementation-agent",
+      "project": "workbench",
+      "phase": "coverage-consolidation",
+      "complete": true,
+      "model": "gpt-5.6-luna",
+      "responses": 6,
+      "reported": {
+        "input_tokens": 800401,
+        "cached_input_tokens": 781824,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 4540,
+        "reasoning_output_tokens": 659,
+        "total_tokens": 804941
+      },
+      "knownReportedLowerBound": {
+        "input_tokens": 800401,
+        "cached_input_tokens": 781824,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 4540,
+        "reasoning_output_tokens": 659,
+        "total_tokens": 804941
+      },
+      "averageInputPerResponse": 133400.16666666666,
+      "inputReuseRatio": 0.9767903838201102,
+      "activity": {
+        "toolCalls": 5,
+        "toolResults": 5,
+        "toolResultCharacters": 27964,
+        "byTool": {
+          "exec": 5
+        }
+      },
+      "startedAt": "2026-09-12T06:12:50.836Z",
+      "finishedAt": "2026-09-12T06:14:02.753Z"
+    }
+  ],
+  "limitations": [
+    "Telemetry is not provider billing; cache and reasoning are subsets.",
+    "Framework includes full source evaluation, adaptation, correction and maintainer coordination/reporting at cutoff.",
+    "Single real delivery, not a controlled direct/native/LangGraph speed comparison.",
+    "PM phase durations are lifecycle boundaries; no exact per-stage token attribution."
+  ]
+}
