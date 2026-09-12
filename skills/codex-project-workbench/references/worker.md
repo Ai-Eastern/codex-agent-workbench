@@ -6,9 +6,11 @@
 
 固定接口字段、文案常量和边界样例逐项对照合同，自测期望不能从实现反向复制。收到 REPAIR 包时沿用原文件范围，按新 attempt 交付，保留未受影响实现；旧回执不代表本次返修已经完成。
 
-完成后写 UTF-8 JSON：`{runId,taskId,attemptId,status:"done",summary,knowledgeIds:[]}`。无法完成时 status="blocked"，summary 写已尝试方式和可验证原因。不要将“命令已启动”写成完成。
+完成后优先使用任务包提供的 resultTool/submit 命令，追加实际 summary；工具核对当前身份、attempt 和写集，生成文件哈希与回执，不需要单独计算并抄写哈希。无法完成追加 `--status blocked`。submit 仅允许交回自己当前任务的结果，不能派工、验收或解除失败；不得伪造 CODEX_THREAD_ID，SUBMITTED 不是验收通过。旧包未提供工具时沿用 UTF-8 JSON：`{runId,taskId,attemptId,status:"done",summary,knowledgeIds:[]}`，失败 status="blocked"。不要将“命令已启动”写成完成。
 
 有持续价值的经验附 `knowledgeCandidate:{id,title,body,kind}`，必须是单个对象，不是数组；可选 expectedHash 用于明确更新已有笔记，不允许自填 source 或其他字段。body 写触发条件、已失败尝试、已确认结论、适用版本和验证方式；尚未证实的原因明确标注。不要重复复制每轮过程、账号、日志或无关代码。程序将在本项目授权范围内用实际验收证据绑定写入。
+
+submit 接受 `--candidate <候选.json>`。候选文件应使用已授权的临时位置，不改未分配文件，也不为每次提交强行编造经验。工具不会补造 tests/PASSED 字段；真实自测命令记录保留，正式验收仍由 PM 的 continue 执行。
 
 单条知识不能保证避免再次出错。通用且可自动检查的防复发规则，应作为后续有界代码/测试变更处理，不能自行修改全局 Skill。
 

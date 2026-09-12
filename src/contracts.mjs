@@ -67,6 +67,7 @@ export function configFrom(file){
   const ids=Object.values(cfg.workerThreads);
   const uuid=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;
   if(!uuid.test(cfg.pmThreadId??'')||ids.some(id=>!uuid.test(id)||id===cfg.pmThreadId)||new Set(ids).size!==ids.length)throw Error('Distinct existing PM and engineer task IDs required');
+  Object.defineProperty(cfg,'configFile',{value:path.resolve(file)});
   return cfg;
 }
 export function validateRequest(value,cfg){

@@ -1,22 +1,50 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {configFrom,readJson,safePath} from './contracts.mjs';
-import {prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
+import {configFrom,readJson,safePath,digest} from './contracts.mjs';
+import {prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,submitResult,claimNative,bindNative,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
 import {costReport,costDiff} from './cost-report.mjs';
 import {traceReport} from './trace-report.mjs';
+import {compactOutput} from './output.mjs';
 
 export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['prepare','preflight','start','continue','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    commands:['prepare','preflight','start','continue','submit','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    compact:'Add --view compact [--max-output-chars 12000]; full output is saved automatically under controlRoot/views. needsRead requires reading those details before action.',
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
   };
   const command=args.shift(),opts={};
   while(args.length){const key=args.shift();if(!key.startsWith('--')||!args.length)throw Error('Use --name value arguments');opts[key.slice(2)]=args.shift();}
+  if(opts.view!==undefined&&!['full','compact'].includes(opts.view))throw Error('--view must be full or compact');
+  if(opts['max-output-chars']!==undefined&&opts.view!=='compact')throw Error('--max-output-chars requires --view compact');
+  if(opts.view!=='compact')return execute(command,opts);
+  if(!['prepare','preflight','start','continue','submit','delivery','status','packet','claim','search'].includes(command))throw Error('Compact view is not supported for this command');
+  const maxChars=Number(opts['max-output-chars']??12000);
+  if(!Number.isSafeInteger(maxChars)||maxChars<1024||maxChars>1000000)throw Error('--max-output-chars must be 1024 to 1000000');
+  if(!opts.project)throw Error('--project /absolute/project.json is required');
+  const cfg=configFrom(path.resolve(opts.project)),detailsPath=safePath(cfg.controlRoot,`views/${randomUUID()}.json`);
+  compactOutput(command,{status:'UNKNOWN',reason:'x'.repeat(maxChars+1)},{detailsPath,detailsHash:'0'.repeat(64),maxChars});
+  fs.mkdirSync(path.dirname(detailsPath),{recursive:true});
+  const fd=fs.openSync(detailsPath,'wx');let saved=false;
+  try{
+    const result=await execute(command,opts),bytes=JSON.stringify(result,null,2)+'\n';
+    fs.writeFileSync(fd,bytes);saved=true;
+    return compactOutput(command,result,{detailsPath,detailsHash:digest(bytes),maxChars});
+  }catch(error){
+    error.detailsPath=detailsPath;error.doNotRetry=true;
+    try{
+      if(!saved){fs.ftruncateSync(fd,0);fs.writeSync(fd,JSON.stringify({status:'ERROR',...errorSummary(error)},null,2)+'\n',0,'utf8');}
+      error.detailsHash=digest(fs.readFileSync(detailsPath));
+    }catch(saveError){error.detailsError=saveError.message;}
+    throw error;
+  }finally{fs.closeSync(fd);}
+}
+async function execute(command,opts){
   if(command==='cost-report'||command==='cost-diff'){
     const result=command==='cost-report'?await costReport(readJson(opts.manifest)):costDiff(readJson(opts.baseline),readJson(opts.current));
     if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.complete};}
@@ -48,6 +76,7 @@ export async function main(args=process.argv.slice(2)){
     return {status:results.every(r=>r.status==='fulfilled')?'READY':'UNAVAILABLE',projectId:cfg.projectId,checkedAt:new Date().toISOString(),workers:results.map((r,i)=>r.status==='fulfilled'?r.value:{taskId:entries[i][0],id:entries[i][1],error:errorSummary(r.reason)}),dispatches:0};
   }
   if(command==='prepare')return prepare(cfg,readJson(opts.request));
+  if(command==='submit')return submitResult(cfg,opts.run,opts.task,{expectedAttemptId:opts.attempt,summary:opts.summary,status:opts.status??'done',...(opts.candidate?{knowledgeCandidate:readJson(opts.candidate)}:{})});
   if(command==='status')return opts.run?status(cfg,opts.run):listRuns(cfg);
   if(command==='delivery'){
     const result=delivery(cfg,opts.run);
@@ -90,7 +119,7 @@ export async function main(args=process.argv.slice(2)){
   }
   throw Error('Unknown command; run help for available commands');
 }
-function errorSummary(e){return Object.fromEntries(['message','code','reason','delivery'].filter(k=>e?.[k]!==undefined).map(k=>[k,sanitizeErrorDetail(e[k])]));}
+function errorSummary(e){return Object.fromEntries(['message','code','reason','delivery','detailsPath','detailsHash','detailsError','doNotRetry'].filter(k=>e?.[k]!==undefined).map(k=>[k,sanitizeErrorDetail(e[k])]));}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{console.log(JSON.stringify(await main(),null,2));}catch(e){console.error(JSON.stringify({status:'ERROR',...errorSummary(e)}));process.exitCode=1;}
 }

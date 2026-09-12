@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "9b17bbf22d1d827c063979a10f61449038c8eb63",
+  "changes": [
+    "concrete requirement handoff in existing messages",
+    "generated task result with actor and attempt guards",
+    "opt-in complete-output-backed presentation budget"
+  ],
+  "sourceHashes": {
+    "src/cli.mjs": "403f8d352eb1f0e0ac5331f21ae382548933756c97edadb13b3b521a708d2ac3",
+    "src/contracts.mjs": "d647ad44ef0c2bb33bfba2beec501f30405af25739f2123128a28b62cd8cfcba",
+    "src/workflow.mjs": "dfebc983f610e7ce2a7e8e85ffd5dc92eb8b411ed5dae537af5d9f2e54c24020",
+    "src/output.mjs": "49b7958f110d8d86d7abf58e12460ec1de01a0b5c801b616a345f15d7e25458a",
+    "skills/codex-project-workbench/references/handoff.md": "8274ee718477b7e5b76053fdabcf4a337e2cc4fec94493a811759698cf79997f",
+    "skills/codex-project-workbench/references/execution.md": "ebd922a8ff75a9512504f6a0fba8bccae678e680c929266122a20ad1e465fff3",
+    "skills/codex-project-workbench/references/worker.md": "c705b87615942059821b50d8b8e2fcf5f27b8444f316d88a1c5e0f6ab6c9eb2d"
+  },
+  "verification": {
+    "tests": 145,
+    "passed": 144,
+    "failed": 0,
+    "skipped": 1,
+    "durationMs": 3680.0046,
+    "newTests": 18,
+    "frameworkOutputHash": "2806c8944e8a542dac9ae30a3d04e145b8fa3dfe19eee812d0fadb6452d755da",
+    "installedReferencesMatch": true,
+    "runtimePreserved": true
+  },
+  "replay": {
+    "sourceHash": "c2242e2e898bc37678e1e40ed6b9887d54b6114eedd36ba2f0ad6d7f69a4c319",
+    "scope": "Read-only replay of the same recorded product outputs; no product command or model rerun",
+    "unit": "JSON.stringify(value,null,2).length; UTF-16 code units, includes display metadata, not tokens",
+    "maxChars": 12000,
+    "results": [
+      {
+        "command": "search",
+        "before": 9849,
+        "after": 4543,
+        "reductionPercent": 53.87,
+        "needsRead": false,
+        "form": "compact-search"
+      },
+      {
+        "command": "start",
+        "before": 15800,
+        "after": 6584,
+        "reductionPercent": 58.33,
+        "needsRead": false,
+        "form": "compact-contract"
+      },
+      {
+        "command": "continue",
+        "before": 3454,
+        "after": 3745,
+        "reductionPercent": -8.43,
+        "needsRead": false,
+        "form": "full"
+      }
+    ]
+  },
+  "limitations": [
+    "Historical output replay is not a model-token or elapsed-time saving benchmark.",
+    "Desktop submit uses bounded adapter tests, not a new live multi-agent run.",
+    "Small output grows with reference metadata; use compact mainly for long outputs.",
+    "Existing full output and legacy receipts remain compatible."
+  ]
+}
