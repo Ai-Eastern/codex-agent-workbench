@@ -18,6 +18,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # Windows' default TEMP can contain RUNNER~1. Keep the path-alias
+      # rejection intact and give fixtures the runner's canonical temp path.
+      - name: Use canonical temporary paths
+        run: node -e "const fs=require('node:fs'); const root=fs.realpathSync.native(process.env.RUNNER_TEMP); fs.appendFileSync(process.env.GITHUB_ENV,['TEMP','TMP','TMPDIR'].map(k=>k+'='+root).join('\n')+'\n');"
       - run: npm ci
       - run: npm test
       - run: npm run evaluate -- --output .local/ci-evidence
