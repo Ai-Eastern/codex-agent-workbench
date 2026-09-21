@@ -1,188 +1,167 @@
 # Codex Agent Workbench
 
-**开源原型，正在升级为“多项目 Agent 编排框架 + Codex 编程工作台”。** 目标是在一个主对话中推进多个项目，由独立项目上下文承接开发，按计划选择分工并处理变化。新版功能按里程碑实现，下面的历史验证仅适用于对应版本。
+**在 Codex 里，协调多个项目的开发与交接。**
 
-[开发规范与任务卡](DEVELOPMENT.md) · [当前开发进度](docs/development-status.md) · [参与贡献](CONTRIBUTING.md) · [MIT 许可证](LICENSE)
+一个面向软件开发的 Agent 编排框架与工作台：用户跟主 Agent 沟通，项目负责人维护各自的上下文，按任务依赖选择直接执行、原生子智能体或独立会话。
 
-**在 Codex Desktop 中连接 Skill、本地 RAG 与多 Agent 编程调度。** 保留项目侧栏和现有角色任务，由总经理协调项目，项目经理按任务选择执行方式，交付后保存可检索、有来源的项目经验。
+**当前阶段：可运行原型，新版开发中。** 原型已具备三条执行路线、项目知识检索和交付核验；文档驱动的多项目调度、局部重规划与自动上下文交接正在实现。具体范围见下方能力表。
 
-目前已用于有界的真实离线开发，跑通任务分流、执行接续、一次集成验收与知识回写。当前重点是减少重复交接、规则读取和报告动作，并记录真实交付成本；尚未得出固定提速、降错或节省比例。
+[快速开始](#快速开始) · [当前能力](#当前能力) · [开发规范](DEVELOPMENT.md) · [开发进度](docs/development-status.md) · [参与贡献](CONTRIBUTING.md)
 
-[快速开始](#快速开始) · [Ruflo 复用状态](#ruflo-复用与调度优化) · [实测结果](#实测结果与成本) · [下一阶段](#下一阶段重点)
+## 从一个主对话开始
 
-## 三部分各自负责什么
+目标使用场景：
 
-| 部分 | 职责 | 主要载体 |
-|---|---|---|
-| **Skill** | 约定角色边界、按需读取规则、选择执行路线及处理异常 | `codex-project-workbench` |
-| **本地 RAG** | 检索项目知识，保留原文、来源与证据，供新任务接续 | Obsidian Markdown＋SQLite FTS5/BM25 |
-| **编排控制器** | 保存合同与文件归属，派工、收集结果、恢复执行并组织验收 | LangGraph.js＋SQLite |
+> 同时推进三个项目：工单系统增加批量导入，SDK 修复兼容问题，知识库调整排序。工单系统优先；SDK 要兼容旧调用。遇到需求变化，更新相关计划后继续。
 
-Skill、知识引擎与控制器在同一仓库发布，便于保持接口和版本一致。项目知识、真实配置、任务身份和会话日志保留在本机，不提交到 Git。
+主 Agent 负责跨项目的优先级、资源和需要用户决定的问题。每个项目保留自己的开发计划、代码上下文和知识范围；实现日志留在项目内，主入口接收进展、阻塞和交付证据。
 
-## 如何组织开发
+这套完整流程是新版的验收目标。当前原型需要显式登记项目和真实会话，安装后不会自动完成全部设置。
 
-总经理按里程碑处理跨项目目标、优先级与冲突；**PM 同时负责技术方案、任务拆分和一次集成验收**，在授权范围内自主推进。单项目需求可直接交给 PM，独立可并行的工作优先原生子 Agent，普通工程步骤不逐级汇报。工程师执行独占写集，不递归委派；前端、后端、测试等能力按实际任务安排。
+## 分工随任务变化
+
+三个判断分开做：
+
+- **能否并行：** 先看依赖、文件写入范围和接口是否明确。
+- **交给谁：** 简单工作由主 Agent 直接完成；短期独立工作使用原生子智能体；持续负责一个项目的工作交给独立会话。
+- **带哪些上下文：** 按项目和任务传递必要资料，交接时保留当前约束、有效成果、失败尝试与下一步。
+
+目标架构：
 
 ```mermaid
-flowchart LR
-    U[用户] --> GM[总经理：协调项目]
-    GM --> PM[各项目 PM：方案与拆分]
-    PM --> D[direct：PM 直接实施]
-    PM --> N[native：原生子 Agent]
-    PM --> L[langgraph：已登记桌面工程师]
-    D --> A[PM 一次集成验收]
-    N --> A
-    L --> A
-    A --> K[交付回执与项目知识保存]
-    K -. 下一项任务检索 .-> PM
+flowchart TB
+    U["用户：一个沟通入口"] --> M["主 Agent：目标、优先级与资源"]
+    M --> A["项目 A：计划与独立上下文"]
+    M --> B["项目 B：计划与独立上下文"]
+    M --> C["项目 C：计划与独立上下文"]
+    A --> AW["按阶段直接执行或委派"]
+    B --> BW["按阶段直接执行或委派"]
+    C --> CW["按阶段直接执行或委派"]
 ```
 
-| 路线 | 适合的工作 | 执行者 |
-|---|---|---|
-| `direct` | 一项有界工作，无需并行 | 当前 PM |
-| `native` | 独立、短期的子任务 | Codex 原生子 Agent |
-| `langgraph` | 有依赖、多阶段或需要跨轮接续 | 已登记的 Desktop 工程师任务 |
+每个负责人按实际任务使用 **0–3 个原生子智能体**。项目之间保留独立上下文，不受任务数量门槛限制；同一项目需要额外拆组时，再检查是否存在至少四项适合同时执行的工作，以及扩组是否值得。
 
-三条路线共享知识包、文件归属和验收标准。LangGraph.js 也承载共同的收集、验收与知识保存流程；路线名 `langgraph` 特指向桌面工程师派工。
+`1-2-6`、`1-3-9`、`1-4-12` 表示候选容量，不是必须启动的人数，也不代表宿主一定允许相应并发。工作减少后应收缩规模，避免交接和重复规划抵消并行收益。
 
-普通 direct/native 已有合并入口：`begin` 一次准备和启动，native 同时领取全部独立任务；PM 仍调用真实原生工具创建子 Agent，身份齐备后可一次批量 bind。direct 使用 `finish` 合并提交、验收和知识保存。内部复用原状态库与 LangGraph，不增加新平台；独立项目可以各自推进，显式需要同步的桌面批次才使用 portfolio barrier。
+## 当前能力
 
-每项目登记的三位工程师是容量上限，PM 按依赖选择 **0–3 人**。`1-2-6`、`1-3-9` 表示总经理、项目经理、工程师的组织规模，不要求所有任务都达到该并发数。原生子 Agent 的界面展示由 Codex 决定，不承诺成为永久侧栏角色。
+以下区分主分支原型已有机制和新版实现目标。开发中的代码以对应 PR 和验证记录为准。
 
-## 项目知识与 Obsidian
+| 能力 | 当前状态 |
+| --- | --- |
+| 直接执行、原生子智能体、已登记 Desktop 会话派工 | 原型已实现，包含有界真实验证 |
+| 任务包冻结、真实身份绑定、文件归属、重复请求防护、产物回执 | 原型已实现 |
+| Markdown 项目知识、中文 FTS5/BM25 检索、来源绑定与验收后保存 | 原型已实现 |
+| 暂停、送达不明时对账、失败记录与受控接续 | 原型已实现；暂停停止新派工，不等于终止在途执行 |
+| 短交接包与新会话接续 | 已有有界验证；自动轮换与版本化接收待实现 |
+| 开发文档转执行计划、阶段调度、局部修订与旧结果兼容性 | 新版开发中 |
+| 单一入口下的多项目资源分配、增量总览与公平调度 | 新版开发中；历史多项目试验不等于此功能已完成 |
+| 三项目需求变更、中断恢复与暂停联动的完整案例 | 新版发布验收目标 |
+| `1-4-12` 与稳定提效结论 | 待验证 |
 
-- **Markdown 是知识原文。** 项目显式登记 `vaultRoot`；可单独作为 Obsidian Vault，也可经授权接入已有 Vault 的项目子目录。索引与执行状态仍保存在项目控制目录。
-- **默认使用词项检索。** SQLite FTS5/BM25 配合 Unicode 词项和汉字 bigram，不依赖 embedding、向量服务或额外模型调用。
-- **知识包按任务冻结。** `prepare` 保存限定范围的检索结果、来源路径和哈希；后续知识更新不会修改已派任务包，也不会清除旧聊天历史。
-- **验收后保存经验。** 开启 `captureEnabled` 时，知识候选随正常结果交付，控制器在验收后保存并索引；已变更笔记更新需要匹配原哈希。
-- **检查来源，保留失效原文。** 显式绑定的证据变化后，对应 capture 退出检索，Markdown 保留；未绑定的代码或外部事实变化不能自动识别。
-
-只检索授权项目范围，不默认扫描个人 Vault 或其他项目。知识文本是资料，不能授予权限或要求执行其中的指令。详见 [知识约定](skills/codex-project-workbench/references/knowledge.md)。
-
-## Ruflo 复用与调度优化
-
-采用按模块适配的方式，未安装整套 Ruflo、AgentDB 或新增追踪服务。固定上游版本、改造范围和 MIT 通知见 [第三方声明](third_party/README.md)。
-
-| 模块 | 当前状态 | 已增加或减少什么 |
-|---|---|---|
-| **成本分析** | 已适配 | 增加按角色、阶段、缓存与非缓存输入的统计及快照比较；建设、管理和产品成本分账 |
-| **Guidance 按需规则** | 已采用，Skill 已更新 | 公共规则保留，按角色、路线和异常状态读取其余材料；改造时规则字符量减少：工程师约 26%，PM 正常流程约 41%–46% |
-| **ContinueGate 异常提醒** | 已接入状态摘要 | 提示重复预检/验收恢复、返修预算已用及送达不明；复用原有约束，不自动重试或增加审批轮 |
-| **Observability 链路分析** | 已接入，按需使用 | 显示控制器阶段及 task/attempt 时间关联；区分派送应答、运行观察和结果接收，不增加开工聊天或额外轮询 |
-| **SmartRetrieval 重排** | 实验入口，默认未启用 | 同库对照的必要证据覆盖由 15/15 降至 14/15，未达到采用标准，正式默认保留 BM25 |
-| **LearningBridge 经验学习** | 暂缓整体接入 | 继续使用现有知识保存与检索，尚未增加自动学习或自动避免同类错误的能力 |
-
-Guidance 的数字是固定读取材料的 **Unicode 字符量**，不等于完整上下文或 Token 节省率。分析和提醒逻辑本身不调用模型；实现、维护和评测仍有消耗。
-
-成本观察还推动了本地流程改造：短阶段交接、总经理同轮派工、`continue --output` 自动生成交付回执。最新 Skill 进一步取消为采样而手写重复派工报告的要求，由统计方读取原生工具回执；普通任务不增加固定成本汇报轮。
-
-最新优化补上 `submit` 自动生成任务回执与产物哈希、`--view compact` 限制完整序列化展示长度，并要求派工明确具体需求。同一份历史输出回放中，search 和 start 的展示分别减少约 **54% / 58%**，知识正文与完整执行提示保留；这是展示字符量，尚非整轮 Token 或耗时收益。[实现与验证](docs/dispatch-efficiency-results-20260912.md)
-
-## 实测结果与成本
-
-以下是截至 **2026-09-13** 的记录，各项证据范围分别标明。
-
-| 验证项 | 已取得结果 | 适用边界 |
-|---|---|---|
-| 三条执行路线 | 跑通 direct、真实原生子 Agent、桌面工程师 A/B → C；包含知识保存和新任务检索 | 有界的小型任务，非全自主生产认证 |
-| 双项目 `1-2-6` | 观察到 6 位工程师并发，45 项合同检查通过 | 有界合同任务 |
-| 三项目 `1-3-9` | 编码批次一次定点返修后通过 67 项检查，编码峰值为 6；后续知识交付达到 9 人重叠 22.529 秒 | 9 人并发发生在知识交付，不能写成九人生产编码提速 |
-| 最新恋语真实交付 | 12 条内容预审、5 条修订副本，一次正式集成验收、1 条知识保存；采用 direct | AI 预审，原人工字段仍待审核；自动检查不证明内容判断正确或训练完成 |
-| 最近一次框架测试 | 155 项：154 通过、0 失败、1 项既有平台跳过；新增合并入口、批量绑定、暂停与重复调用边界 | 本地自动化测试，不替代 GUI 或用户验收 |
-
-最新内容预审实际使用了 `submit` 自动回执和精简输出：search 展示从 **10,169 降至 3,996 字符**，start 从 **18,658 降至 7,150 字符**；短 prepare 反而由 550 增至 829 字符。这是本轮输出的展示对照，不能等同于整轮 Token 节省。
-
-GM 保持 **2 次**顶层工具调用、发送后没有重复报告，完整轮次约 **46 秒**。PM 本轮约 **12分26秒**，上一项约 **8分57秒**；工具调用由 **18 增至 40 次**。准备前 337.058 秒包含实际内容分析，控制器内执行与等待 360.052 秒，正式验收命令 0.086 秒。另发生一次非法知识候选字段提交：原 Skill 已禁止自填 source，但 PM 仍加入，修正恢复约 75.482 秒；完成后又有 4 次记忆读取。**局部精简生效，整体成本尚未下降。**
-
-| 最新样本成本 | 原始总 Token（含缓存） | 非缓存输入 | 输出 |
-|---|---:|---:|---:|
-| 产品＋管理 | 4,501,061 | 440,533 | 34,160 |
-| 维护者协调与观察，截点下界 | 2,906,117 | 60,745 | 18,876 |
-
-成本截点为 2026-09-12 15:23:02.004 UTC，维护者尚未结束，该下界未计只读审计子 Agent 与后续报告、发布，不能充当整轮全部成本。本轮未改框架代码或 Skill。缓存输入已包含在输入中，不重复累加，不换算 Codex 订阅费用。前后任务与上下文历史不同，不能据此推导受控提速率；也尚未证明建设回本。
-
-证据：[最新内容预审与开销](docs/normal-prereview-results-20260912.md) · [前次正常交付观察](docs/normal-delivery-results-20260912.md) · [计时与修复](docs/task-timing-results-20260912.md) · [阶段交接前后观察](docs/stage-handoff-results-20260912.md) · [多项目验证](docs/dispatch-scale-results-20260912.md)。
-
-针对这些开销，9 月 13 日已完成 [普通执行入口简化](docs/lightweight-execution-results-20260913.md)：direct 的必要控制器命令从 4 次合为 2 次；3 位原生子 Agent 在身份齐备、批量绑定的情况下，PM 的控制器命令从 9 次合为 3 次。知识候选报错会直接指出非法字段和允许字段。命令数来自流程结构，尚无本次改动后的真实整轮提速或 Token 对照。
+原型中的 Desktop 路线使用历史名称 `langgraph`。它描述已有桌面任务的派工方式；LangGraph 本身是内部流程与检查点组件，不能与执行者类型或 Codex 会话混为一谈。
 
 ## 快速开始
 
-技术栈：**Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。原创代码采用 MIT 许可证，第三方声明另行保留。模型与推理强度按用户明确配置；历史模型验证记录不等于所有组合均已认证。第一轮保留 LangGraph 内部流程实现，详见开发规范中的依赖边界。
+当前安装入口面向 **Windows、Node.js 24+、Git 和 Codex Desktop**。Desktop 适配依赖宿主版本及可用工具；新版支持矩阵正在按 [开发规范](DEVELOPMENT.md) 核验。以下操作安装现有原型。
 
-首次安装，在仓库目录执行：
+### 1. 获取与检查源码
 
 ```powershell
+git clone https://github.com/Ai-Eastern/codex-agent-workbench.git
+Set-Location codex-agent-workbench
 npm ci
+npm test
+```
+
+普通自动化测试使用本地夹具，不需要模型 API 密钥；测试通过不代表真实 Desktop 链路已验证。
+
+### 2. 安装 Skill
+
+将占位值替换为你的 Codex 配置目录：
+
+```powershell
 $codexDirectory = '<你的 Codex 配置目录绝对路径>'
 $nodeExecutable = (Get-Command node).Source
 & ./scripts/install.ps1 -CodexRoot $codexDirectory -NodePath $nodeExecutable
 ```
 
-以 [项目配置示例](examples/project.example.json) 登记真实项目根、知识范围和现有 PM／工程师任务身份，再使用 [请求示例](examples/request.example.json) 描述任务。安装脚本不会自动登记真实项目；已有 Skill 时拒绝直接覆盖。默认保留旧 Skill，显式 `-DisableLegacy` 迁移会保存备份，不清除旧任务历史或失败状态。
+已有同名 Skill 时，安装脚本拒绝直接覆盖。默认保留旧 Skill；显式迁移操作会保存备份。安装不会清除原有任务历史。
 
-| 入口 | 查找位置 |
-|---|---|
-| 安装后的 Skill | `<Codex配置目录>/skills/codex-project-workbench/SKILL.md` |
-| CLI、Node、登记表路径 | **Skill 安装目录**的 `runtime.json` |
-| 当前项目配置 | 该项目 `AGENTS.md` 指定的路径 |
-| 执行、工作与知识目录 | 配置中的 `controlRoot`、`workRoot`、`vaultRoot` |
+### 3. 绑定项目与执行身份
 
-在现有总经理或对应 PM 任务中继续自然语言交代目标，例如：
+依据 [项目配置示例](examples/project.example.json)，填写真实项目目录、独立知识范围和现有负责人/执行者身份；按 [执行约定](skills/codex-project-workbench/references/execution.md) 登记配置与项目入口。
 
-> 推进指定项目的这项需求。使用 codex-project-workbench，由项目 PM 检索相关知识、按依赖选择执行路线，完成必要自测和一次集成验收，并保存可复用经验。
+- 项目配置由该项目的 `AGENTS.md` 指向。
+- CLI、Node 和登记表路径位于安装后 Skill 目录的 `runtime.json`。
+- 项目知识、真实会话身份、运行配置与日志保存在本机。
+- 真实会话创建依赖宿主工具和用户授权，不能用示例 ID 代替。
 
-需要手动查询时，先把项目配置占位值替换为已登记的真实路径：
+### 4. 回到 Codex 对话
 
-```powershell
-$codexDirectory = '<你的 Codex 配置目录绝对路径>'
-$runtimeFile = Join-Path $codexDirectory 'skills/codex-project-workbench/runtime.json'
-$runtime = Get-Content -LiteralPath $runtimeFile -Raw | ConvertFrom-Json
-$project = '<项目 AGENTS.md 中的真实配置绝对路径>'
-& $runtime.node $runtime.cli search --project $project --query '本次需求关键词'
-& $runtime.node $runtime.cli status --project $project
-```
+在已登记的负责人任务中提出需求：
 
-普通新任务先 `begin --project <配置> --request <请求.json>`：冻结合同与写集并启动 direct/native；native 领取成功返回 `CREATE_NATIVE`，由 PM 真实创建子 Agent，再逐条 bind 或用 `bind --bindings <taskId到真实UUID的JSON对象>` 原子批量绑定。重复 begin 只返回已有状态，不再返回创建包。原生工具仅返回协调名称时，仍需从实际子 Agent 核对 UUID，不能猜测。旧 `prepare/start/claim` 入口保留，桌面派工继续按 [执行规则](skills/codex-project-workbench/references/execution.md)。
+> 使用 codex-project-workbench 完成这个项目的需求。先检索必要项目知识，再按依赖选择执行方式，完成代码修改、自测和集成验收，并保存有效经验。
 
-direct PM 完成实现和必要自测后，按任务包调用 `finish --project <配置> --run <id> --task <task> --attempt <attempt> --summary <结果> --output <新交付文件>`，一次提交并正式验收；native/桌面工程师仍用 submit，PM 收齐后 continue。finish 只允许 direct PM，不覆盖已有回执、不恢复暂停或失败；部分完成后按原状态接续。长输出加 `--view compact`，详情保存在 controlRoot/views；`needsRead:true` 时先读已存详情，不重跑原命令取全文，短状态和完成回执保持默认。
+完成安装和登记后，日常操作入口是 Codex 对话。CLI 用于 Skill 内部控制和必要诊断。原型请求格式见 [请求示例](examples/request.example.json)，异常接续见 [恢复规则](skills/codex-project-workbench/references/recovery.md)。
 
-`status` 查询摘要，`portfolio` 查询多项目摘要。已授权工作正常接续不增加逐轮确认；失败、送达不明或证据变化沿原 run 保留记录并按 [恢复规则](skills/codex-project-workbench/references/recovery.md) 处理。仅知识保存待处理时，不重做代码和验收。`pause` 停止新派工，不强制终止已运行的 Agent 或子进程。
+## 框架与 Coding Agent 如何分层
 
-按需分析使用 `cost-report`、`cost-diff` 和 `trace-report`，由指定统计方在交付结束后统一采集；参数与数据范围见 [成本与计时说明](skills/codex-project-workbench/references/cost.md)。
+| 部分 | 负责什么 |
+| --- | --- |
+| 编排核心 | 项目与任务身份、依赖、状态、写入归属、结果核验；新版补充计划版本、跨项目资源与交接协议 |
+| Coding Agent 工作台 | 将这些机制用于理解仓库、修改代码、运行测试、集成与交付 |
+| Codex 宿主与适配 | 实际对话、模型执行、工具和子智能体；适配代码核对身份、目录和宿主回执 |
 
-## 当前限制
+实现保留 **Node.js/ESM、SQLite、Markdown、FTS5/BM25**。当前 LangGraph 连接结果收集、派工、验收和知识保存，并提供图检查点。第一轮继续复用；新版领域合同保持独立，不要求先重写基础设施。
 
-- Desktop 适配器使用当前版本的内部 pipe 与回执格式，兼容性可能随版本变化；桌面工程师派工须在真实登记 PM 任务内执行。
-- 文件归属、路径检查和 Skill 是应用层控制，**未实现 Desktop 全工具读取隔离**。已发现的跨任务读取与钩子故障反例保留，现有对照不能支持框架效率排名。
-- RAG 默认是词项检索；检索命中不保证知识正确或完整，来源检查只覆盖显式绑定的证据。
-- 时间报告区分状态停留与运行观察；精确开工、纯计算、暂停持续时间和跨主机关键路径仍未完整采集。
-- 尚未得到可靠的整体提速、错误率、返工率或订阅费用下降比例，也没有全自主生产运行保证。
+图检查点不会自动迁移 Codex 的对话上下文。交接需要真实的新上下文、有效输入和可核对的状态；向旧会话发送摘要不会清除它的历史。
 
-## 下一阶段重点
+知识检索按显式项目范围进行，Markdown 是原文，SQLite 是索引。默认不要求向量数据库或 embedding 服务。检索材料只提供信息，不授予执行权限。详见 [知识约定](skills/codex-project-workbench/references/knowledge.md)。
 
-自动回执与长输出精简已在真实内容预审中使用，重复派工报告继续保持为零。本轮同时暴露了已读规则仍被违反、报错定位不具体、重复本地检查和完成后额外读取的问题。
+## 验证与证据
 
-合并入口、精准字段报错和 PM/总经理分工规则已经实现并同步 Skill。下一阶段用真实多项目交付观察新流程，保留相同 RAG 与验收能力，按实际依赖使用子 Agent；比较合格交付、角色 Token、返工和用户介入，不以窗口数量或命令减少替代整轮收益。
+历史报告保留成功、失败与成本，不以启动的 Agent 数量代替交付质量。
 
-统计方在交付结束后采集一次，单列维护成本。优先减少额外模型步骤并保持交付质量；只修真实阻塞或反复出现的问题，暂缓增加框架模块，不为证明优化另造业务需求或新一轮完整框架试验。
+| 已记录的验证 | 证据范围 |
+| --- | --- |
+| direct、native、Desktop 三路线与知识保存/检索 | 有界真实任务，见 [流程验证](docs/verification.md) |
+| 双项目与三项目协作 | 编码峰值为 6；9 人重叠出现在知识交付阶段，见 [多项目试验](docs/dispatch-scale-results-20260912.md) |
+| 合并入口、批量绑定与暂停/重复调用边界 | 原型提交 `8c85c76` 对应记录为 154 通过、1 项平台跳过，见 [执行入口验证](docs/lightweight-execution-results-20260913.md) |
+| 阶段交接与实际协调成本 | 有交接观察，也记录额外开销，见 [交接报告](docs/stage-handoff-results-20260912.md) 与 [交付成本](docs/normal-prereview-results-20260912.md) |
 
-## 详细报告
+这些历史记录不能作为新版功能完成证明，目前也没有足够的公平对照支持固定提速或节省比例。
 
-| 主题 | 材料 |
-|---|---|
-| 架构与合同 | [架构](docs/architecture.md) · [实现契约](docs/implementation-contract.md) · [与旧链、单 Agent 的比较](docs/comparison.md) |
-| Ruflo 来源与适配 | [初始评估](docs/ruflo-assessment-20260912.md) · [成本模块评估](docs/ruflo-cost-assessment-20260912.md) · [MIT 与改造范围](third_party/README.md) |
-| 检索与规则 | [SmartRetrieval 未采用结果](docs/smart-retrieval-results-20260912.md) · [Guidance 实测](docs/guidance-results-20260912.md) |
-| 异常与观察 | [ContinueGate](docs/continue-gate-results-20260912.md) · [Observability](docs/observability-results-20260912.md) · [最新计时与调度修复](docs/task-timing-results-20260912.md) |
-| 真实开发与成本 | [最新正常交付](docs/normal-delivery-results-20260912.md) · [首次成本分账](docs/ruflo-real-task-cost-20260912.md) · [阶段交接](docs/stage-handoff-results-20260912.md) · [多项目验证](docs/dispatch-scale-results-20260912.md) |
+新版首个完整案例将从一个主入口推进三个独立项目：A 修改需求并更新计划，B 中断后交接接续，C 在资源调整后继续。验收检查错项目派工、旧版本结果、重复开发、暂停行为与实际交付，详见 [开发规范](DEVELOPMENT.md)。
 
 <details>
-<summary>历史流程验证与隔离调查</summary>
+<summary>更多实现、对照与边界记录</summary>
 
-- [首次三路线与知识闭环](docs/verification.md)、[Spark 完整流程](docs/spark-e2e.md)。
-- [三组真实功能对照](docs/comparison-results.md)、[对照协议](docs/comparison-protocol.md)：保留失败与样本污染，不作胜负结论。
-- [流程修复](docs/repair-verification.md)、[Docker＋SSH 隔离实测](docs/desktop-isolation-results-20260911.md)。
-- [原生受管钩子实测](docs/desktop-hooks-results-20260911.md)、[工具执行端授权核查](docs/desktop-tool-authorization-assessment-20260911.md)：未达到全工具读取隔离。
+- [当前原型架构](docs/architecture.md) · [实现契约](docs/implementation-contract.md)。
+- [对照协议](docs/comparison-protocol.md) · [包含失败与污染问题的结果](docs/comparison-results.md)。
+- [检索重排未采用结果](docs/smart-retrieval-results-20260912.md) · [规则按需读取](docs/guidance-results-20260912.md)。
+- [异常接续提醒](docs/continue-gate-results-20260912.md) · [链路观察](docs/observability-results-20260912.md)。
+- [Desktop 隔离调查](docs/desktop-isolation-results-20260911.md) · [Hook 故障反例](docs/desktop-hooks-results-20260911.md) · [宿主授权边界](docs/desktop-tool-authorization-assessment-20260911.md)。
 
 </details>
+
+独立会话与文件写入归属不等于严格的读取权限隔离。当前 Desktop 适配使用版本相关的内部接口；应用关闭后的自动唤醒、全工具隔离与更大并发规模均须分别验证。
+
+## 接下来的开发
+
+[DEVELOPMENT.md](DEVELOPMENT.md) 是开发规则来源，[开发进度](docs/development-status.md) 记录实际提交和验证结果。
+
+| 阶段 | 交付目标 |
+| --- | --- |
+| WB-00–03 | 宿主能力基线、核心合同、计划版本与项目路由 |
+| WB-04–07 | 阶段推进、上下文交接、局部调整与全局资源 |
+| WB-08 | 三项目真实案例及失败恢复验收 |
+| WB-09–10 | 有预算的对照评测、安装说明、兼容矩阵与功能版本发布 |
+
+源码与开发规范已经开源。新版功能按里程碑发布，README 随已验证的交付更新能力表。
+
+## 参与和许可
+
+复现安装问题、检验交接边界、补充有界真实案例或完善测试，都可以从 [贡献指南](CONTRIBUTING.md) 开始。提交问题时请注明版本、复现步骤和实际结果，并移除私有路径、凭据和对话内容。
+
+原创代码采用 [MIT License](LICENSE)。部分成本、检索与规则组织实现参考或适配了 Ruflo，来源、固定提交与保留声明见 [第三方说明](third_party/README.md)；其他声明见 [licenses](licenses/)。
