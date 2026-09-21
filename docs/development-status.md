@@ -28,7 +28,7 @@
 - WB-01–08 控制器与夹具候选验证：2026-09-21 19:54（Asia/Shanghai），`npm test` 共 249 项，248 通过、0 失败、1 平台跳过，耗时 22,847 ms；`node src/cli.mjs --help` 与 `git diff --check` 通过。该记录不含后续补充的三业务仓库组合测试，也不作为真实宿主通过声明。
 - 实现提交：`428292cf57202be411d485fae8049b6efba918cf`（WB-01–08 控制器/夹具、WB-09 协议、WB-10 安装/CI材料）。该提交的干净克隆 `npm ci` 成功，`npm test` 为 249 项、248 通过、0 失败、1 平台跳过，耗时 23,220 ms；临时 Codex 根中的 `install.ps1` 返回 `INSTALLED`，安装后的 CLI 帮助正常。没有写入个人 Codex 根。
 - [该提交的 GitHub Actions](https://github.com/Ai-Eastern/codex-agent-workbench/actions/runs/35596774987)：2026-09-21 19:58 完成，Ubuntu 与 Windows 各 249/249 通过、0 跳过，分别约 16,066 ms 与 40,729 ms。远端环境能执行本机跳过项；公开提交及 CI 成功不等于真实三项目案例通过。
-- WB-08 补充组合验证：新增 `test/three-projects-runtime.test.mjs`，实际运行 A v1→v2、B/C 独立仓库验收、B 原 run/attempt 交接接续、项目/全局暂停和额度 2→1；四轮业务验收合计 17 项通过。宿主读取及身份来源采用明确标注的夹具，业务代码来自参考补丁。2026-09-21 加入后全套 `npm test` 为 250 项、249 通过、0 失败、1 本机符号链接权限跳过，耗时 24,951 ms。
+- WB-08 补充组合验证：提交 `b97491598de7953ba330d2489fee051f11094951` 新增 `test/three-projects-runtime.test.mjs`，实际运行 A v1→v2、B/C 独立仓库验收、B 原 run/attempt 交接接续、项目/全局暂停和额度 2→1；四轮业务验收合计 17 项通过。宿主读取及身份来源采用明确标注的夹具，业务代码来自参考补丁。2026-09-21 加入后全套 `npm test` 为 250 项、249 通过、0 失败、1 本机符号链接权限跳过，耗时 24,951 ms。
 
 ## 仍需完成
 
