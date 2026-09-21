@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Saved three-project run evidence (private local manifest)",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "runId", "recordedAt", "host", "budget", "coordinatorRef", "artifacts", "projects", "eventsRef", "usageRef", "timingRef"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "enum": ["real-host", "fixture"] },
+    "runId": { "type": "string", "minLength": 1 },
+    "recordedAt": { "type": "string", "format": "date-time" },
+    "host": {
+      "type": "object",
+      "required": ["name", "version", "toolVersion"],
+      "properties": { "name": { "type": "string", "minLength": 1 }, "version": { "type": "string", "minLength": 1 }, "toolVersion": { "type": "string", "minLength": 1 } }
+    },
+    "budget": { "type": "object", "required": ["maxActiveWorkers"], "properties": { "maxActiveWorkers": { "type": "integer", "minimum": 1 } } },
+    "coordinatorRef": { "$ref": "#/$defs/ref" },
+    "eventsRef": { "$ref": "#/$defs/ref" },
+    "usageRef": { "$ref": "#/$defs/ref" },
+    "timingRef": { "$ref": "#/$defs/ref" },
+    "artifacts": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {
+        "type": "object", "required": ["path", "sha256"],
+        "properties": { "path": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+        "additionalProperties": false
+      }
+    },
+    "projects": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["projectId", "repository", "baseCommit", "finalCommit", "identityRef", "planRevisions", "baselineAcceptanceRef", "acceptanceRef"],
+        "properties": {
+          "projectId": { "enum": ["project-a", "project-b", "project-c"] },
+          "repository": { "type": "string", "minLength": 1 },
+          "baseCommit": { "$ref": "#/$defs/commit" }, "finalCommit": { "$ref": "#/$defs/commit" },
+          "identityRef": { "$ref": "#/$defs/ref" }, "baselineAcceptanceRef": { "$ref": "#/$defs/ref" }, "acceptanceRef": { "$ref": "#/$defs/ref" },
+          "planRevisions": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ref": { "type": "string", "minLength": 1 },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}([a-f0-9]{24})?$" }
+  }
+}

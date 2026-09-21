@@ -8,9 +8,12 @@ import {SqliteSaver} from '@langchain/langgraph-checkpoint-sqlite';
 import {createKnowledge,validateKnowledgeCandidate} from './knowledge.mjs';
 import {continueGate} from './continue-gate.mjs';
 import {digest,readJson,writeJson,safePath,assertContained,projectIdentity,validateRequest,knowledgeIndexPath} from './contracts.mjs';
+import {activePlan,taskDefinitionHash} from './plan.mjs';
+import {resolveIdentity} from './handoff.mjs';
+import {assertRunPermit,releaseWorkers} from './portfolio.mjs';
 
 export function knowledge(cfg){return createKnowledge({projectId:cfg.projectId,vaultRoot:cfg.vaultRoot,indexPath:knowledgeIndexPath(cfg),sourceRoot:cfg.projectRoot});}
-function openStore(cfg){
+export function openStore(cfg){
   assertContained(cfg.projectRoot,cfg.controlRoot);
   fs.mkdirSync(cfg.controlRoot,{recursive:true});
   for(const file of ['state.sqlite','state.sqlite-wal','state.sqlite-shm','state.sqlite-journal'])safePath(cfg.controlRoot,file);
@@ -22,6 +25,13 @@ function openStore(cfg){
     CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY,run_id TEXT,at INTEGER,kind TEXT,data TEXT);
     CREATE TABLE IF NOT EXISTS knowledge_corrections(run_id TEXT,task_id TEXT,candidate TEXT NOT NULL,archive_path TEXT NOT NULL,archive_hash TEXT NOT NULL,PRIMARY KEY(run_id,task_id));
     CREATE UNIQUE INDEX IF NOT EXISTS active_thread ON tasks(thread_id) WHERE status IN ('RESERVED','DISPATCHED','NATIVE_BOUND');`);
+  // Additive migration: legacy runs, packets and LangGraph checkpoints stay untouched.
+  db.exec(`CREATE TABLE IF NOT EXISTS workbench_schema(version INTEGER PRIMARY KEY);
+    INSERT OR IGNORE INTO workbench_schema VALUES(1);
+    CREATE TABLE IF NOT EXISTS plans(project_id TEXT,plan_id TEXT,revision INTEGER,hash TEXT NOT NULL,snapshot TEXT NOT NULL,identity TEXT NOT NULL,created_at INTEGER NOT NULL,reason TEXT NOT NULL,PRIMARY KEY(project_id,plan_id,revision));
+    CREATE TABLE IF NOT EXISTS active_plans(project_id TEXT PRIMARY KEY,plan_id TEXT NOT NULL,revision INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS plan_runs(project_id TEXT,plan_id TEXT,phase_id TEXT,group_id TEXT,plan_revision INTEGER,run_id TEXT PRIMARY KEY,task_refs TEXT NOT NULL,request TEXT NOT NULL,created_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS plan_retirements(run_id TEXT PRIMARY KEY,evidence TEXT NOT NULL,evidence_hash TEXT NOT NULL,created_at INTEGER NOT NULL);`);
   const event=(id,kind,data={})=>db.prepare('INSERT INTO events(run_id,at,kind,data) VALUES(?,?,?,?)').run(id,Date.now(),kind,JSON.stringify(data));
   return {saver,db,event,
     run:id=>db.prepare('SELECT * FROM runs WHERE id=?').get(id),
@@ -32,7 +42,7 @@ function openStore(cfg){
 function requireRun(store,cfg,id){
   const run=store.run(id);
   if(!run)throw Error('Unknown run');
-  if(run.identity!==projectIdentity(cfg))throw Error('Project configuration changed; reconcile explicitly');
+  if(resolveIdentity(store,run.identity)!==projectIdentity(cfg))throw Error('Project configuration changed; reconcile explicitly');
   return run;
 }
 function artifacts(cfg,req){return Object.fromEntries(req.tasks.flatMap(t=>t.files).map(file=>{const full=safePath(cfg.workRoot,file);return [file,fs.existsSync(full)?digest(fs.readFileSync(full)):null];}));}
@@ -119,6 +129,7 @@ export function prepare(cfg,input){
       const receiptPath=safePath(cfg.controlRoot,`runs/${req.id}/results/${task.id}.json`);
       safePath(cfg.controlRoot,`runs/${req.id}/packets/${task.id}.json`);
       return {projectId:cfg.projectId,runId:req.id,taskId:task.id,attemptId,mode:req.mode,model:cfg.model,thinking:cfg.thinking??'low',
+        ...(req.planBinding?{planBinding:req.planBinding}:{}),
         ...(cfg.configFile?{resultTool:{command:process.execPath,cli:fileURLToPath(new URL('./cli.mjs',import.meta.url)),projectConfig:cfg.configFile}}:{}),
         objective:task.objective,projectObjective:req.objective,constraints:req.constraints,taskConstraints:task.constraints??[],dependsOn:task.dependsOn,
         workRoot:cfg.workRoot,files:task.files.map(f=>safePath(cfg.workRoot,f)),receiptPath,context,contextHash:digest(context),
@@ -137,7 +148,28 @@ export function prepare(cfg,input){
     return snapshot(cfg,store,req.id);
   }finally{index.close();store.close();}
 }
-function requirePM(cfg){if(process.env.CODEX_THREAD_ID!==cfg.pmThreadId)throw Error('This operation requires the configured PM task');}
+function requirePM(cfg){
+  if(process.env.CODEX_THREAD_ID!==cfg.pmThreadId)throw Error('This operation requires the configured PM task');
+  if(fs.existsSync(safePath(cfg.controlRoot,'state.sqlite'))){const store=openStore(cfg);try{if(resolveIdentity(store,projectIdentity(cfg))!==projectIdentity(cfg))throw Error('This PM identity has already been handed off');}finally{store.close();}}
+}
+function requireDispatchPermit(cfg,store,id){
+  const mapping=store.db.prepare('SELECT * FROM plan_runs WHERE run_id=?').get(id);if(!mapping)return;
+  if(store.db.prepare('SELECT 1 FROM plan_retirements WHERE run_id=?').get(id))planError('RESULT_SUPERSEDED','This undispatched group has been explicitly superseded');
+  const request=JSON.parse(mapping.request),active=activePlan(cfg,store);
+  if(!active||active.plan.planId!==mapping.plan_id||JSON.parse(mapping.task_refs).some(ref=>{
+    const task=active.plan.tasks.find(t=>t.id===ref.id);return !task||task.revision!==ref.revision||taskDefinitionHash(active.plan,task)!==ref.definitionHash;
+  }))planError('INPUT_STALE','Undispatched group no longer matches the active task definitions');
+  const tasks=store.tasks(id);
+  validatePhaseInputs(cfg,request,new Set(tasks.filter(t=>t.status!=='PENDING').flatMap(t=>request.tasks.find(item=>item.id===t.task_id).files)));
+  for(const task of tasks){
+    const packet=JSON.parse(task.packet),file=safePath(cfg.controlRoot,`runs/${id}/packets/${task.task_id}.json`);
+    if(!fs.existsSync(file))planError('PREPARE_INCOMPLETE','Frozen packet file is missing; reconcile the original preparation');
+    if(digest(readJson(file))!==digest(packet))planError('INPUT_STALE','Frozen packet file differs from controller state');
+  }
+  if(!store.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='portfolio_binding'").get())return;
+  const binding=store.db.prepare('SELECT registry FROM portfolio_binding WHERE id=1').get();
+  if(binding)assertRunPermit(JSON.parse(binding.registry),cfg,id);
+}
 export async function begin(cfg,input){
   requirePM(cfg);
   if(!['direct','native'].includes(input?.mode))throw Error('begin supports new direct or native work only; use the Desktop start protocol for langgraph');
@@ -157,9 +189,11 @@ export async function finish(cfg,id,taskId,options){
   requirePM(cfg);
   if(status(cfg,id).mode!=='direct')throw Error('finish is only for direct PM work; native workers submit and return to their PM');
   submitResult(cfg,id,taskId,options);
-  try{return await advance(cfg,id);}catch(error){error.doNotRetry=true;throw error;}
+  const store=openStore(cfg);let planned;try{planned=!!store.db.prepare('SELECT 1 FROM plan_runs WHERE run_id=?').get(id);}finally{store.close();}
+  try{return planned?await advancePlan(cfg,id):await advance(cfg,id);}catch(error){error.doNotRetry=true;throw error;}
 }
-export function promptFor(packet){
+export function promptFor(packet,{projectConfig}={}){
+  if(projectConfig&&packet.resultTool)packet={...packet,resultTool:{...packet.resultTool,projectConfig}};
   const knowledgeText=packet.context.items.map(x=>`[${x.id}] ${x.path}\nSHA256=${x.hash}\n${x.text}`).join('\n\n');
   const direct=packet.mode==='direct',command=direct?'finish':'submit';
   const submit=packet.resultTool?`使用任务包提供的交付工具 ${JSON.stringify({command:packet.resultTool.command,args:[packet.resultTool.cli,command,'--project',packet.resultTool.projectConfig,'--run',packet.runId,'--task',packet.taskId,'--attempt',packet.attemptId]})}，追加 --summary 实际完成内容；无法完成追加 --status blocked。工具自动生成身份、文件哈希与回执，拒绝覆盖；不得伪造 CODEX_THREAD_ID。${direct?'finish 由当前 PM 提交并推进一次正式验收；可加 --output 新交付文件，成功后复用 delivery。错误保留原 run，不重复 finish；已有提交时按状态接续。':'submit 是叶子任务的结果提交，不启动验收或派工；SUBMITTED 不是验收通过。'}可选 --candidate 指向实际知识候选 JSON；未提供时不自动生成经验。`:
@@ -171,7 +205,7 @@ export function promptFor(packet){
     `完成实现并运行必要自测。固定接口字段、常量文案和样例期望逐项对照合同，不从实现倒推自测期望。失败保留事实，不循环尝试同一已失败方案。${submit}然后简短报告结果。`;
 }
 export function status(cfg,id){const s=openStore(cfg);try{const {packets,...summary}=snapshot(cfg,s,id);return summary;}finally{s.close();}}
-export function getPacket(cfg,id,taskId){const s=openStore(cfg);try{requireRun(s,cfg,id);const t=s.tasks(id).find(t=>t.task_id===taskId);if(!t)throw Error('Unknown task');const p=JSON.parse(t.packet);return {...p,prompt:promptFor(p)};}finally{s.close();}}
+export function getPacket(cfg,id,taskId){const s=openStore(cfg);try{requireRun(s,cfg,id);const t=s.tasks(id).find(t=>t.task_id===taskId);if(!t)throw Error('Unknown task');const p=JSON.parse(t.packet);return {...p,prompt:promptFor(p,{projectConfig:cfg.configFile})};}finally{s.close();}}
 export function submitResult(cfg,id,taskId,{expectedAttemptId,summary,status:resultStatus='done',knowledgeCandidate}={}){
   if(typeof summary!=='string'||!summary.trim()||!['done','blocked'].includes(resultStatus))throw Error('Result summary and done/blocked status required');
   const s=openStore(cfg);
@@ -207,13 +241,13 @@ export function claimNative(cfg,id,taskId){
 function claimNativeTasks(cfg,id,taskIds){
   if(!Array.isArray(taskIds)||!taskIds.length||new Set(taskIds).size!==taskIds.length)throw Error('Nonempty distinct native task IDs required');
   const s=openStore(cfg);
-  try{return s.db.transaction(()=>{
+  try{requireDispatchPermit(cfg,s,id);return s.db.transaction(()=>{
     const r=requireRun(s,cfg,id);
     if(r.status!=='RUNNING'||r.pause_requested||JSON.parse(r.request).mode!=='native')throw Error('Native claim is not currently authorized');
     return taskIds.map(taskId=>{
       const changed=s.db.prepare("UPDATE tasks SET status='NATIVE_CLAIMED' WHERE run_id=? AND task_id=? AND status='ASSIGNED'").run(id,taskId);
       if(changed.changes!==1)throw Error('Native task already claimed or not assignable; do not create again');
-      const t=s.tasks(id).find(t=>t.task_id===taskId),p=JSON.parse(t.packet);s.event(id,'native_claim',{taskId,attemptId:t.attempt});return {...p,prompt:promptFor(p)};
+      const t=s.tasks(id).find(t=>t.task_id===taskId),p=JSON.parse(t.packet);s.event(id,'native_claim',{taskId,attemptId:t.attempt});return {...p,prompt:promptFor(p,{projectConfig:cfg.configFile})};
     });
   })();}finally{s.close();}
 }
@@ -238,6 +272,178 @@ export function bindNativeBatch(cfg,id,bindings){
   })();}finally{s.close();}
 }
 export function listRuns(cfg){const s=openStore(cfg);try{return {projectId:cfg.projectId,runs:s.db.prepare('SELECT id,status,created_at,reason FROM runs ORDER BY created_at DESC').all()};}finally{s.close();}}
+
+function planError(code,message){throw Object.assign(Error(message),{code});}
+function validatePhaseInputs(cfg,request,transferredFiles=new Set()){
+  for(const [file,hash] of Object.entries(request.planBinding?.inputArtifactHashes??{})){
+    if(transferredFiles.has(file))continue;
+    const full=safePath(cfg.workRoot,file);
+    if(!fs.existsSync(full)||digest(fs.readFileSync(full))!==hash)planError('INPUT_STALE','Frozen dependency artifacts changed');
+  }
+  for(const [runId,hash] of Object.entries(request.planBinding?.inputAcceptanceHashes??{})){
+    const file=safePath(cfg.controlRoot,`runs/${runId}/acceptance.json`);
+    if(!fs.existsSync(file)||digest(fs.readFileSync(file))!==hash)planError('INPUT_STALE','Frozen dependency acceptance changed');
+  }
+}
+function planView(cfg,store,record){
+  const {plan}=record, rows=store.db.prepare('SELECT * FROM plan_runs WHERE project_id=? AND plan_id=? ORDER BY created_at,run_id').all(cfg.projectId,plan.planId);
+  const completed=new Map(),busy=new Map(),runs=[],latestArtifacts=new Map();
+  for(const row of rows){
+    const run=store.run(row.run_id),refs=JSON.parse(row.task_refs);
+    if(store.db.prepare('SELECT 1 FROM plan_retirements WHERE run_id=?').get(row.run_id)){runs.push({runId:row.run_id,status:'RESULT_SUPERSEDED',taskIds:refs.map(t=>t.id)});continue;}
+    if(!run){runs.push({runId:row.run_id,status:'PREPARE_PENDING',taskIds:refs.map(t=>t.id)});for(const ref of refs)busy.set(ref.id,row.run_id);continue;}
+    requireRun(store,cfg,row.run_id);
+    runs.push({runId:row.run_id,phaseId:row.phase_id,groupId:row.group_id,planRevision:row.plan_revision,status:run.pause_requested?'PAUSED':run.status,taskIds:refs.map(t=>t.id)});
+    if(run.status==='COMPLETE'&&!run.pause_requested){
+      const file=safePath(cfg.controlRoot,`runs/${row.run_id}/acceptance.json`),bytes=fs.readFileSync(file),accepted=JSON.parse(bytes);
+      if(digest(bytes)!==run.acceptance_hash||accepted.requestHash!==run.digest||accepted.passed!==true)planError('INPUT_STALE','Prior group acceptance changed');
+      for(const task of store.tasks(row.run_id)){
+        const packet=JSON.parse(task.packet),receipt=readJson(packet.receiptPath);
+        const event=store.db.prepare("SELECT data FROM events WHERE run_id=? AND kind='task_result' AND json_extract(data,'$.attemptId')=? ORDER BY id DESC LIMIT 1").get(row.run_id,task.attempt);
+        if(task.status!=='DONE'||digest(receipt)!==digest(JSON.parse(task.result??'null'))||!event||JSON.parse(event.data).receiptHash!==digest(fs.readFileSync(packet.receiptPath)))planError('INPUT_STALE','Prior task result evidence changed');
+      }
+      for(const [file,hash] of Object.entries(accepted.artifacts))latestArtifacts.set(file,hash);
+      for(const ref of refs){
+        const task=plan.tasks.find(t=>t.id===ref.id);
+        if(task&&task.revision===ref.revision&&taskDefinitionHash(plan,task)===ref.definitionHash)completed.set(ref.id,{runId:row.run_id,acceptanceHash:run.acceptance_hash});
+      }
+    }else for(const ref of refs)busy.set(ref.id,row.run_id);
+  }
+  const phaseDone=new Set();
+  for(let pass=0;pass<plan.phases.length;pass++)for(const p of plan.phases){
+    if(p.dependsOn.every(id=>phaseDone.has(id))&&plan.tasks.filter(t=>t.phaseId===p.id).every(t=>completed.has(t.id)&&!busy.has(t.id)))phaseDone.add(p.id);
+  }
+  const tasks=plan.tasks.map(t=>({id:t.id,revision:t.revision,phaseId:t.phaseId,status:busy.has(t.id)?'IN_FLIGHT':completed.has(t.id)?'COMPLETE':t.dependsOn.every(id=>completed.has(id)&&!busy.has(id))&&plan.phases.find(p=>p.id===t.phaseId).dependsOn.every(id=>phaseDone.has(id))?'READY':'WAITING',...(busy.has(t.id)?{runId:busy.get(t.id)}:{})}));
+  for(const [file,hash] of latestArtifacts){
+    const full=safePath(cfg.workRoot,file);
+    if(!store.db.prepare('SELECT 1 FROM ownership WHERE file=?').get(full)&&(!fs.existsSync(full)||digest(fs.readFileSync(full))!==hash))planError('INPUT_STALE','Latest accepted artifacts changed');
+  }
+  const type=tasks.every(t=>t.status==='COMPLETE')?'PLAN_COMPLETE':tasks.some(t=>t.status==='READY')?'SELECT_GROUP':runs.some(r=>r.status==='PREPARE_PENDING')?'RECONCILE_PREPARE':'CONTINUE_GROUP';
+  return {projectId:cfg.projectId,planId:plan.planId,planRevision:plan.revision,planHash:record.planHash,tasks,runs,nextAction:{type,actorThreadId:cfg.pmThreadId,taskIds:tasks.filter(t=>t.status==='READY').map(t=>t.id)},latestArtifacts};
+}
+export function phaseStatus(cfg){
+  const record=activePlan(cfg);if(!record)planError('CONFIG_PENDING','Publish a project plan before executing phases');
+  const store=openStore(cfg);try{const {latestArtifacts,...view}=planView(cfg,store,record);return view;}finally{store.close();}
+}
+
+// One group maps to one legacy run. This deliberately preserves mode-specific
+// claim, binding, receipt, failure and recovery semantics in the existing engine.
+export function preparePhase(cfg,{expectedRevision,phaseId,groupId,taskIds,decision,checks}={}){
+  requirePM(cfg);
+  const record=activePlan(cfg);if(!record)planError('CONFIG_PENDING','Publish a project plan first');
+  const {plan}=record;
+  if(plan.revision!==expectedRevision)planError('PLAN_CONFLICT','Read the active plan revision before dispatch');
+  if(!/^[A-Za-z0-9_-]{1,40}$/.test(groupId??'')||!Array.isArray(taskIds)||!taskIds.length||new Set(taskIds).size!==taskIds.length)planError('PLAN_INVALID','A stable group id and distinct taskIds are required');
+  if(!decision||!['serial','parallel'].includes(decision.topology)||!['direct','native','desktop'].includes(decision.carrier)||!['continue','select','handoff'].includes(decision.context)||typeof decision.reason!=='string'||!decision.reason.trim())planError('PLAN_INVALID','Record topology, carrier, context and the scheduling reason');
+  if(decision.context==='handoff')planError('CAPABILITY_UNAVAILABLE','Accept a verified context handoff before preparing work in that context');
+  const phase=plan.phases.find(p=>p.id===phaseId),selected=taskIds.map(id=>plan.tasks.find(t=>t.id===id));
+  if(!phase||selected.some(t=>!t||t.phaseId!==phaseId||t.executor!==decision.carrier))planError('PLAN_INVALID','Group must use tasks from one phase and one declared carrier');
+  if((decision.topology==='serial'||decision.carrier==='direct')&&selected.length!==1)planError('PLAN_INVALID','Serial and direct groups contain one task');
+  if(decision.carrier==='native'&&selected.length>Math.min(3,phase.maxNativeWorkers,cfg.maxWorkers))planError('CAPABILITY_UNAVAILABLE','Native group exceeds the available project capacity');
+  if(!Array.isArray(checks)||selected.some(t=>t.acceptanceRefs.some(id=>!checks.some(c=>c.id===id))))planError('PLAN_INVALID','Resolve every acceptanceRef to an explicit acceptance command');
+  const refs=selected.map(t=>({id:t.id,revision:t.revision,definitionHash:taskDefinitionHash(plan,t)}));
+  const runId=`phase-${digest({projectId:cfg.projectId,planId:plan.planId,phaseId,groupId,refs}).slice(0,32)}`;
+  const request=validateRequest({id:runId,projectId:cfg.projectId,objective:plan.objective,mode:decision.carrier==='desktop'?'langgraph':decision.carrier,reason:decision.reason,constraints:plan.constraints,
+    planBinding:{planId:plan.planId,revision:plan.revision,planHash:record.planHash,phaseId,groupId,taskRefs:refs,decision,acceptanceHash:digest(checks)},
+    tasks:selected.map(t=>({id:t.id,objective:t.objective??plan.objective,files:t.files,constraints:t.constraints,dependsOn:[],knowledge:{ids:t.contextRefs}})),checks},cfg);
+  const store=openStore(cfg);
+  try{
+    const existing=store.db.prepare('SELECT * FROM plan_runs WHERE run_id=?').get(runId);
+    if(existing){
+      if(store.db.prepare('SELECT 1 FROM plan_retirements WHERE run_id=?').get(runId))planError('RESULT_SUPERSEDED','Superseded groups cannot be recreated');
+      const frozen=JSON.parse(existing.request).planBinding;
+      request.planBinding.inputArtifactHashes=frozen.inputArtifactHashes;
+      request.planBinding.inputAcceptanceHashes=frozen.inputAcceptanceHashes;
+      if(digest(JSON.parse(existing.request))!==digest(request))planError('PLAN_CONFLICT','Group id already binds a different frozen request');
+      return {projectId:cfg.projectId,runId,reused:true,nextAction:{type:store.run(runId)?'READ_RUN':'RECONCILE_PREPARE',actorThreadId:cfg.pmThreadId,taskIds}};
+    }
+    store.db.transaction(()=>{
+      const active=store.db.prepare('SELECT revision FROM active_plans WHERE project_id=?').get(cfg.projectId);
+      if(active?.revision!==expectedRevision)planError('PLAN_CONFLICT','Plan changed while preparing the group');
+      const view=planView(cfg,store,record);
+      if(taskIds.some(id=>view.tasks.find(t=>t.id===id)?.status!=='READY'))planError('DEPENDENCY_NOT_READY','Task dependencies or prior attempts have not been accepted');
+      request.planBinding.inputArtifactHashes=Object.create(null);request.planBinding.inputAcceptanceHashes={};
+      for(const [file,hash] of view.latestArtifacts){
+        const full=safePath(cfg.workRoot,file);
+        const owned=store.db.prepare('SELECT 1 FROM ownership WHERE file=?').get(full);
+        if(!owned&&(!fs.existsSync(full)||digest(fs.readFileSync(full))!==hash))planError('INPUT_STALE','Accepted input artifacts changed before the next group');
+        if(!owned)request.planBinding.inputArtifactHashes[file]=hash;
+      }
+      for(const run of view.runs)if(run.status==='COMPLETE')request.planBinding.inputAcceptanceHashes[run.runId]=store.run(run.runId).acceptance_hash;
+      store.db.prepare('INSERT INTO plan_runs VALUES(?,?,?,?,?,?,?,?,?)').run(cfg.projectId,plan.planId,phaseId,groupId,plan.revision,runId,JSON.stringify(refs),JSON.stringify(request),Date.now());
+      store.event(runId,'phase_prepare_intent',{planId:plan.planId,planRevision:plan.revision,phaseId,groupId,taskIds,decision});
+    }).immediate();
+  }finally{store.close();}
+  try{
+    const prepared=prepare(cfg,request),state=openStore(cfg);let registered;
+    try{registered=!!state.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='portfolio_binding'").get()&&!!state.db.prepare('SELECT 1 FROM portfolio_binding WHERE id=1').get();}finally{state.close();}
+    return {...prepared,...(registered?{nextAction:{type:'RESERVE_WORKERS',actorThreadId:cfg.pmThreadId,taskIds}}:{}),plan:phaseStatus(cfg)};
+  }
+  catch(error){error.doNotRetry=true;throw error;}
+}
+
+export function reconcilePhasePreparation(cfg,runId){
+  requirePM(cfg);const store=openStore(cfg);let request;
+  try{
+    const row=store.db.prepare('SELECT * FROM plan_runs WHERE run_id=? AND project_id=?').get(runId,cfg.projectId);
+    if(!row)planError('PLAN_INVALID','Unknown group preparation');
+    if(store.db.prepare('SELECT 1 FROM plan_retirements WHERE run_id=?').get(runId))planError('RESULT_SUPERSEDED','Superseded groups cannot be restored');
+    request=JSON.parse(row.request);
+    const active=activePlan(cfg,store);if(active.planHash!==request.planBinding.planHash)planError('INPUT_STALE','Prepared group plan changed before recovery');
+    if(store.run(runId)){
+      const run=requireRun(store,cfg,runId),tasks=store.tasks(runId);
+      if(run.digest!==digest(request)||tasks.some(t=>t.status!=='PENDING'))planError('RECONCILE_REQUIRED','Packet restoration requires the original undispatched preparation');
+      validatePhaseInputs(cfg,request);
+      for(const task of tasks){
+        const file=safePath(cfg.controlRoot,`runs/${runId}/packets/${task.task_id}.json`),packet=JSON.parse(task.packet),bytes=JSON.stringify(packet,null,2)+'\n';
+        if(fs.existsSync(file)){if(digest(fs.readFileSync(file))!==digest(bytes))planError('INPUT_STALE','Existing packet differs; preserve it for reconciliation');}
+        else{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,bytes,{flag:'wx'});}
+      }
+      return {runId,reused:true,nextAction:{type:'READ_RUN',actorThreadId:cfg.pmThreadId,taskIds:[]}};
+    }
+    validatePhaseInputs(cfg,request);
+  }finally{store.close();}
+  // No host action exists before prepare returns. Preserve the same intent/run id.
+  return prepare(cfg,request);
+}
+
+export function supersedePhase(cfg,runId,{expectedPlanRevision,reason}={}){
+  requirePM(cfg);
+  if(typeof reason!=='string'||!reason.trim())planError('PLAN_INVALID','Superseding requires an explicit reason');
+  const store=openStore(cfg),lock=safePath(cfg.controlRoot,'.runner.lock');let fd;
+  try{
+    fd=fs.openSync(lock,'wx');fs.writeFileSync(fd,JSON.stringify({pid:process.pid,runId,action:'supersede-undispatched'}));
+    return store.db.transaction(()=>{
+      const existing=store.db.prepare('SELECT * FROM plan_retirements WHERE run_id=?').get(runId);
+      if(existing)return {runId,status:'RESULT_SUPERSEDED',reused:true,evidenceHash:existing.evidence_hash};
+      const mapping=store.db.prepare('SELECT * FROM plan_runs WHERE run_id=? AND project_id=?').get(runId,cfg.projectId),active=activePlan(cfg,store);
+      if(!mapping||active?.plan.revision!==expectedPlanRevision)planError('PLAN_CONFLICT','Read the current plan before superseding an old preparation');
+      const run=store.run(runId),tasks=store.tasks(runId),events=store.db.prepare('SELECT id,kind,data FROM events WHERE run_id=? ORDER BY id').all(runId);
+      if(run)requireRun(store,cfg,runId);
+      if((run&&!['PREPARED','RUNNING'].includes(run.status))||tasks.some(t=>t.status!=='PENDING')||events.some(e=>!['phase_prepare_intent','prepared','status'].includes(e.kind)))planError('DISPATCH_UNKNOWN','Only a group proven never assigned or dispatched may release ownership');
+      const request=JSON.parse(mapping.request);
+      if(run?.digest&&run.digest!==digest(request))planError('INPUT_STALE','Original request evidence changed');
+      if(tasks.some(t=>fs.existsSync(JSON.parse(t.packet).receiptPath)))planError('DISPATCH_UNKNOWN','A result exists; reconcile its delivery before changing ownership');
+      const evidence={projectId:cfg.projectId,runId,requestHash:digest(request),expectedPlanRevision,reason,actorThreadId:cfg.pmThreadId,tasks:tasks.map(t=>({taskId:t.task_id,attemptId:t.attempt,status:t.status})),events,delivery:'NOT_SENT',proof:'NO_ASSIGNMENT_OR_DISPATCH_INTENT'};
+      const bytes=JSON.stringify(evidence),evidenceHash=digest(bytes);
+      store.db.prepare('INSERT INTO plan_retirements VALUES(?,?,?,?)').run(runId,bytes,evidenceHash,Date.now());
+      store.db.prepare('DELETE FROM ownership WHERE run_id=?').run(runId);
+      store.event(runId,'phase_superseded',{evidenceHash,reason});
+      return {runId,status:'RESULT_SUPERSEDED',evidenceHash,resources:'RECONCILE_UNDISPATCHED_RESERVATION'};
+    }).immediate();
+  }finally{if(fd!==undefined){fs.closeSync(fd);fs.unlinkSync(lock);}store.close();}
+}
+
+export async function advancePlan(cfg,runId,options={}){
+  requirePM(cfg);const store=openStore(cfg);
+  try{if(!store.db.prepare('SELECT 1 FROM plan_runs WHERE run_id=? AND project_id=?').get(runId,cfg.projectId))planError('PLAN_INVALID','Unknown plan group');}
+  finally{store.close();}
+  const run=await advance(cfg,runId,options);
+  const state=openStore(cfg);let registry;
+  try{if(state.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='portfolio_binding'").get())registry=JSON.parse(state.db.prepare('SELECT registry FROM portfolio_binding WHERE id=1').get()?.registry??'null');}finally{state.close();}
+  const resources=run.status==='COMPLETE'&&registry?releaseWorkers(registry,{projectId:cfg.projectId,runId,expectedEpoch:registry.manifest.coordinatorEpoch}):undefined;
+  return {...run,plan:phaseStatus(cfg),...(resources?{resources}:{})};
+}
 export function pause(cfg,id){const s=openStore(cfg);try{const r=requireRun(s,cfg,id);if(!['COMPLETE','FAILED','BLOCKED'].includes(r.status)){s.db.prepare('UPDATE runs SET pause_requested=1 WHERE id=?').run(id);s.event(id,'paused');}return snapshot(cfg,s,id);}finally{s.close();}}
 function failureEvidence(cfg,s,id,expectedAcceptanceHash){
   const r=requireRun(s,cfg,id),req=JSON.parse(r.request);
@@ -448,6 +654,7 @@ export async function advance(cfg,id,{desktop,commandRunner=runCheck,resume=fals
     }
     if(initial.pause_requested&&!resume)return snapshot(cfg,store,id);
     if(resume)store.db.prepare('UPDATE runs SET pause_requested=0 WHERE id=?').run(id);
+    if(store.tasks(id).some(t=>t.status==='PENDING'))requireDispatchPermit(cfg,store,id);
     if(!['COMPLETE_CAPTURE_PENDING','ACCEPTED','ACCEPTING'].includes(initial.status))store.status(id,'RUNNING');
     const active=()=>store.run(id).status==='RUNNING'&&!store.run(id).pause_requested;
     const state=Annotation.Root({runId:Annotation(),step:Annotation()});
@@ -487,6 +694,7 @@ export async function advance(cfg,id,{desktop,commandRunner=runCheck,resume=fals
         if(!active())return {step:'stop'};
         const tasks=store.tasks(id),done=new Set(tasks.filter(t=>t.status==='DONE').map(t=>t.task_id));
         const ready=tasks.filter(t=>t.status==='PENDING'&&req.tasks.find(x=>x.id===t.task_id).dependsOn.every(x=>done.has(x)));
+        if(ready.length)requireDispatchPermit(cfg,store,id);
         const heads=new Map();let recovered=null,recovery=null;
         if(req.mode==='langgraph'){
           try{
@@ -514,12 +722,13 @@ export async function advance(cfg,id,{desktop,commandRunner=runCheck,resume=fals
         for(const t of ready)for(const file of req.tasks.find(x=>x.id===t.task_id).files)safePath(cfg.workRoot,file);
         store.event(id,'batch_preflight',{tasks:ready.map(t=>t.task_id)});
         for(const t of ready){
+          requireDispatchPermit(cfg,store,id);
           if(!active())break;
           const packet=JSON.parse(t.packet);
           if(req.mode==='langgraph'){
             store.db.prepare("UPDATE tasks SET status='RESERVED',baseline=? WHERE run_id=? AND task_id=?").run(heads.get(t.task_id),id,t.task_id);
             store.event(id,'dispatch_intent',{taskId:t.task_id,attemptId:t.attempt});
-            try{await desktop.send(t.thread_id,promptFor(packet));store.db.transaction(()=>{store.db.prepare("UPDATE tasks SET status='DISPATCHED' WHERE run_id=? AND task_id=?").run(id,t.task_id);store.event(id,'dispatch_ack',{taskId:t.task_id,attemptId:t.attempt,threadId:t.thread_id});})();}
+            try{await desktop.send(t.thread_id,promptFor(packet,{projectConfig:cfg.configFile}));store.db.transaction(()=>{store.db.prepare("UPDATE tasks SET status='DISPATCHED' WHERE run_id=? AND task_id=?").run(id,t.task_id);store.event(id,'dispatch_ack',{taskId:t.task_id,attemptId:t.attempt,threadId:t.thread_id});})();}
             catch(error){
               const details={code:typeof error.code==='string'?error.code.slice(0,80):'DISPATCH_FAILED',reason:'Desktop dispatch acknowledgement was not confirmed',message:String(error.message??error).slice(0,500),delivery:typeof error.delivery==='string'?error.delivery.slice(0,80):'UNKNOWN'};
               store.event(id,'dispatch_failed',{taskId:t.task_id,attemptId:t.attempt,...details});

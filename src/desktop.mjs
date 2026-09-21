@@ -27,7 +27,7 @@ export function decode(raw){
   return result;
 }
 function statePath(cfg){return cfg.desktopStatePath||(process.env.CODEX_HOME?path.join(process.env.CODEX_HOME,'state_5.sqlite'):path.join(os.homedir(),'.codex','state_5.sqlite'));}
-function comparableCwd(value){
+export function comparableCwd(value){
   let v=String(value);
   if(/^\\\\\?\\UNC\\/i.test(v))v='\\\\'+v.slice(8);
   else if(/^\\\\\?\\/i.test(v))v=v.slice(4);
@@ -46,12 +46,14 @@ export function readThreadState(cfg,id){
     return {id,cwd:row.cwd,archived:false,availabilityEvidence:{fields:'threads.id,threads.cwd,threads.archived',observedAt:new Date().toISOString(),statePath:file}};
   }finally{d.close();}
 }
-export function desktopClient(cfg){
+export function desktopClient(cfg,{readOnlyThreadIds=[]}={}){
   const caller=process.env.CODEX_THREAD_ID,pipe=process.env.CODEX_APP_TOOLS_PIPE_PATH;
   if(caller!==cfg.pmThreadId||!pipe)throw Error('Run this command inside the configured PM Desktop task');
   const targets=new Set([cfg.pmThreadId,...Object.values(cfg.workerThreads)]);
+  if(!Array.isArray(readOnlyThreadIds)||readOnlyThreadIds.some(id=>typeof id!=='string'||!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)))throw Error('Explicit read-only Desktop identities required');
+  const readable=new Set([...targets,...readOnlyThreadIds]);
   async function call(tool,args){
-    if(!['read_thread','send_message_to_thread'].includes(tool)||!targets.has(args.threadId))throw Error('Desktop target outside project');
+    if(!['read_thread','send_message_to_thread'].includes(tool)||!(tool==='read_thread'?readable:targets).has(args.threadId))throw Error('Desktop target outside project');
     if(tool==='send_message_to_thread'&&(args.threadId===caller||args.model!==cfg.model||args.thinking!==cfg.thinking))throw Error('Invalid Desktop dispatch');
     if(process.env.CODEX_THREAD_ID!==caller||process.env.CODEX_APP_TOOLS_PIPE_PATH!==pipe)throw Error('Desktop identity changed');
     const id=randomUUID(),request={jsonrpc:'2.0',id,method:'tools/call',params:{namespace:'codex_app',threadId:caller,tool,arguments:args,callId:`workbench-${randomUUID()}`,turnId:`workbench-${randomUUID()}`}};

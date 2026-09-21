@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Frozen functional acceptance, not hidden evaluation",
+  "files": {
+    "project-a/acceptance/v1.test.mjs": "45fa36a9bb033c795d98be26e8096fcbdd0619af7d2de4d68339ff339d5465f8",
+    "project-a/acceptance/v2.test.mjs": "a1bd2ef866c522c28516b321910ffedede0a7fba1618792db89b56ddc5f5f0da",
+    "project-b/acceptance/v1.test.mjs": "e165439c46304b9788bbd92b74eef790311a029e290cc0908def9d6382f33f47",
+    "project-c/acceptance/v1.test.mjs": "de225eac73cfd7e62f381c621e0736c3853dbf65775670902eab7c19711f9ec2"
+  },
+  "baselineFiles": {
+    "project-a/src/config.mjs": "dbb6b27f48f5905e037f75ea802b6f93310a5234c54594cccc765c0ff5a4cba3",
+    "project-a/src/import.mjs": "a44b591eff55eeee042fd6f404e0f105692013ce24358180d605dd9af87909e6",
+    "project-b/src/client.mjs": "470662a7839bc0f832932da25c68bf92311e8406be43b39757b23749cc4ffff9",
+    "project-b/src/config.mjs": "6a4c3a18799ae6fff2ddeee55ddb6b4b76a79e863b95261d114d2d8a5a4b0e6a",
+    "project-c/src/config.mjs": "614f2d7870d64a1366400e928bad5352aa54c652dc62a42fee3c2cd5d208b1d6",
+    "project-c/src/search.mjs": "40c520737133db3a577bde1859799e372a290ac0c116e909bdcff90e0bbfe3c5"
+  }
+}
