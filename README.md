@@ -1,71 +1,98 @@
-# Codex Agent Workbench
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/workbench-hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/assets/workbench-hero-light.svg">
+  <img src="./docs/assets/workbench-hero-light.svg" width="1200" alt="Codex Agent Workbench: one coordinator, three scoped project contexts. Design direction for an open-source prototype.">
+</picture>
 
-**在 Codex 里，协调多个项目的开发与交接。**
+<h1 align="center">Codex Agent Workbench</h1>
 
-一个面向软件开发的 Agent 编排框架与工作台：用户跟主 Agent 沟通，项目负责人维护各自的上下文，按任务依赖选择直接执行、原生子智能体或独立会话。
+<p align="center"><strong>English</strong> · <a href="./README.zh-CN.md">简体中文</a></p>
 
-**当前阶段：可运行原型，新版开发中。** 原型已具备三条执行路线、项目知识检索和交付核验；文档驱动的多项目调度、局部重规划与自动上下文交接正在实现。具体范围见下方能力表。
+<p align="center">
+  <strong>One conversation. Every project in focus.</strong><br>
+  Codex-native orchestration · Adaptive delegation · Scoped context · Traceable handoffs
+</p>
 
-[快速开始](#快速开始) · [当前能力](#当前能力) · [开发规范](DEVELOPMENT.md) · [开发进度](docs/development-status.md) · [参与贡献](CONTRIBUTING.md)
+<p align="center">
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-8EDBBF?style=flat-square&amp;labelColor=172A33"></a>
+  <a href="./package.json"><img alt="Node.js: 24 or newer" src="https://img.shields.io/badge/Node.js-24%2B-8EDBBF?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white&amp;labelColor=172A33"></a>
+  <a href="#get-started"><img alt="Host: Codex Desktop" src="https://img.shields.io/badge/host-Codex%20Desktop-91BCE8?style=flat-square&amp;labelColor=172A33"></a>
+  <a href="#get-started"><img alt="Platform: Windows" src="https://img.shields.io/badge/platform-Windows-91BCE8?style=flat-square&amp;labelColor=172A33"></a>
+  <a href="./docs/development-status.md"><img alt="Stage: Prototype" src="https://img.shields.io/badge/stage-Prototype-E9BB87?style=flat-square&amp;labelColor=172A33"></a>
+</p>
 
-## 从一个主对话开始
+<p align="center">
+  <a href="#get-started"><strong>Get started</strong></a> ·
+  <a href="#capabilities">Capabilities</a> ·
+  <a href="./DEVELOPMENT.md">Development spec</a> ·
+  <a href="#roadmap">Roadmap</a> ·
+  <a href="./CONTRIBUTING.md">Contribute</a>
+</p>
 
-目标使用场景：
+A coding workflow and agent orchestration framework built around Codex. Talk to a lead agent while project leads keep their own context and choose between direct execution, native subagents, and separate conversations.
 
-> 同时推进三个项目：工单系统增加批量导入，SDK 修复兼容问题，知识库调整排序。工单系统优先；SDK 要兼容旧调用。遇到需求变化，更新相关计划后继续。
+> **Runnable prototype · Multi-project upgrade in development**<br>
+> The prototype already supports three execution routes, project knowledge retrieval, and verified delivery receipts. Versioned development plans, adaptive multi-project scheduling, and automatic context handoffs are being built. The header illustrates the design direction; see [Capabilities](#capabilities) for the current scope.
 
-主 Agent 负责跨项目的优先级、资源和需要用户决定的问题。每个项目保留自己的开发计划、代码上下文和知识范围；实现日志留在项目内，主入口接收进展、阻塞和交付证据。
+## Start with one conversation
 
-这套完整流程是新版的验收目标。当前原型需要显式登记项目和真实会话，安装后不会自动完成全部设置。
+The target workflow:
 
-## 分工随任务变化
+> Work on three projects: add bulk import to the ticketing app, fix backward compatibility in the SDK, and stabilize search ranking. Prioritize the ticketing app. Keep existing SDK callers working. Update the relevant plan when requirements change.
 
-三个判断分开做：
+The coordinator handles priorities, resources, and decisions that need your input. Each project keeps its own plan, code context, and knowledge scope. Detailed execution logs stay with the project; the main conversation receives progress, blockers, and delivery evidence.
 
-- **能否并行：** 先看依赖、文件写入范围和接口是否明确。
-- **交给谁：** 简单工作由主 Agent 直接完成；短期独立工作使用原生子智能体；持续负责一个项目的工作交给独立会话。
-- **带哪些上下文：** 按项目和任务传递必要资料，交接时保留当前约束、有效成果、失败尝试与下一步。
+This complete scenario is a release acceptance target. The current prototype requires explicit project registration and real conversation identities.
 
-目标架构：
+## Let the work determine the team
 
-```mermaid
-flowchart TB
-    U["用户：一个沟通入口"] --> M["主 Agent：目标、优先级与资源"]
-    M --> A["项目 A：计划与独立上下文"]
-    M --> B["项目 B：计划与独立上下文"]
-    M --> C["项目 C：计划与独立上下文"]
-    A --> AW["按阶段直接执行或委派"]
-    B --> BW["按阶段直接执行或委派"]
-    C --> CW["按阶段直接执行或委派"]
-```
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <sub>01 / DEPENDENCIES</sub><br>
+      <strong>What can run in parallel?</strong><br><br>
+      Establish dependencies, shared interfaces, and file ownership before scheduling independent work.
+    </td>
+    <td width="33%" valign="top">
+      <sub>02 / DELEGATION</sub><br>
+      <strong>Who should do the work?</strong><br><br>
+      Execute small tasks directly, delegate bounded work to subagents, and use separate conversations for continuing projects.
+    </td>
+    <td width="33%" valign="top">
+      <sub>03 / CONTEXT</sub><br>
+      <strong>What should a handoff carry?</strong><br><br>
+      Pass current constraints, valid results, failed attempts, and next steps. Load detailed evidence when needed.
+    </td>
+  </tr>
+</table>
 
-每个负责人按实际任务使用 **0–3 个原生子智能体**。项目之间保留独立上下文，不受任务数量门槛限制；同一项目需要额外拆组时，再检查是否存在至少四项适合同时执行的工作，以及扩组是否值得。
+Each lead uses **0–3 native subagents** according to the task. Separate projects keep separate contexts regardless of task count. Additional execution groups within a project require at least four suitable concurrent work items, available resources, and a reason to expect the coordination cost to pay off.
 
-`1-2-6`、`1-3-9`、`1-4-12` 表示候选容量，不是必须启动的人数，也不代表宿主一定允许相应并发。工作减少后应收缩规模，避免交接和重复规划抵消并行收益。
+`1-2-6`, `1-3-9`, and `1-4-12` describe candidate capacities, not staffing targets or guaranteed host limits. Reduce the team as work narrows.
 
-## 当前能力
+## Capabilities
 
-以下区分主分支原型已有机制和新版实现目标。开发中的代码以对应 PR 和验证记录为准。
+This table separates the prototype on the default branch from the new workflow. Implementation branches and their verification records may be ahead of the default branch.
 
-| 能力 | 当前状态 |
+| Capability | Status |
 | --- | --- |
-| 直接执行、原生子智能体、已登记 Desktop 会话派工 | 原型已实现，包含有界真实验证 |
-| 任务包冻结、真实身份绑定、文件归属、重复请求防护、产物回执 | 原型已实现 |
-| Markdown 项目知识、中文 FTS5/BM25 检索、来源绑定与验收后保存 | 原型已实现 |
-| 暂停、送达不明时对账、失败记录与受控接续 | 原型已实现；暂停停止新派工，不等于终止在途执行 |
-| 短交接包与新会话接续 | 已有有界验证；自动轮换与版本化接收待实现 |
-| 开发文档转执行计划、阶段调度、局部修订与旧结果兼容性 | 新版开发中 |
-| 单一入口下的多项目资源分配、增量总览与公平调度 | 新版开发中；历史多项目试验不等于此功能已完成 |
-| 三项目需求变更、中断恢复与暂停联动的完整案例 | 新版发布验收目标 |
-| `1-4-12` 与稳定提效结论 | 待验证 |
+| Direct execution, native subagents, and dispatch to registered Desktop conversations | Implemented in the prototype; bounded live validation recorded |
+| Frozen task packets, identity binding, file ownership, duplicate-request protection, and artifact receipts | Implemented |
+| Markdown knowledge, Chinese-aware FTS5/BM25 retrieval, source binding, and capture after acceptance | Implemented |
+| Pause, uncertain-delivery reconciliation, failure records, and controlled continuation | Implemented; pause stops new dispatch, not necessarily in-flight work |
+| Short handoffs and continuation in a new conversation | Bounded validation exists; automatic rotation and versioned acceptance are planned |
+| Development plans, phase scheduling, local revisions, and stale-result compatibility checks | In development |
+| Multi-project resource allocation, incremental status, and fair scheduling from one entry point | In development; earlier multi-project trials do not establish completion |
+| A three-project scenario with requirement changes, interruption recovery, and scoped pauses | Release acceptance target |
+| `1-4-12` and repeatable efficiency improvements | Not yet validated |
 
-原型中的 Desktop 路线使用历史名称 `langgraph`。它描述已有桌面任务的派工方式；LangGraph 本身是内部流程与检查点组件，不能与执行者类型或 Codex 会话混为一谈。
+The prototype calls its Desktop route `langgraph`. That is a legacy route name. LangGraph itself is an internal workflow and checkpoint component, distinct from the execution host and conversation identities.
 
-## 快速开始
+## Get started
 
-当前安装入口面向 **Windows、Node.js 24+、Git 和 Codex Desktop**。Desktop 适配依赖宿主版本及可用工具；新版支持矩阵正在按 [开发规范](DEVELOPMENT.md) 核验。以下操作安装现有原型。
+The current installation path targets **Windows, Node.js 24+, Git, and Codex Desktop**. Desktop integration depends on the host version and available tools. The new compatibility matrix is being established under the [development spec](DEVELOPMENT.md).
 
-### 1. 获取与检查源码
+### 1. Clone and check the source
 
 ```powershell
 git clone https://github.com/Ai-Eastern/codex-agent-workbench.git
@@ -74,35 +101,37 @@ npm ci
 npm test
 ```
 
-普通自动化测试使用本地夹具，不需要模型 API 密钥；测试通过不代表真实 Desktop 链路已验证。
+The automated suite uses local fixtures and does not require a model API key. Passing tests do not establish live Desktop compatibility.
 
-### 2. 安装 Skill
+### 2. Install the Skill
 
-将占位值替换为你的 Codex 配置目录：
+Replace the placeholder with your Codex configuration directory:
 
 ```powershell
-$codexDirectory = '<你的 Codex 配置目录绝对路径>'
+$codexDirectory = '<absolute path to your Codex config directory>'
 $nodeExecutable = (Get-Command node).Source
 & ./scripts/install.ps1 -CodexRoot $codexDirectory -NodePath $nodeExecutable
 ```
 
-已有同名 Skill 时，安装脚本拒绝直接覆盖。默认保留旧 Skill；显式迁移操作会保存备份。安装不会清除原有任务历史。
+The installer refuses to overwrite an existing Skill with the same name. Legacy Skills are kept by default; explicit migration creates backups. Installation does not clear conversation history.
 
-### 3. 绑定项目与执行身份
+### 3. Register projects and identities
 
-依据 [项目配置示例](examples/project.example.json)，填写真实项目目录、独立知识范围和现有负责人/执行者身份；按 [执行约定](skills/codex-project-workbench/references/execution.md) 登记配置与项目入口。
+Start from [the project configuration example](examples/project.example.json). Set real project paths, a scoped knowledge directory, and real lead/worker conversation identities. See [the execution contract](skills/codex-project-workbench/references/execution.md).
 
-`workRoot` 是任务文件路径的基准，应指向实际待修改的代码目录；示例中的 `work/` 只是占位。如果代码直接位于项目根，可将 `workRoot` 设为 `projectRoot`，同时让控制目录与知识目录各自独立。配置中的 `model` / `thinking` 用于执行者；原型校验目前仅接受 Spark/low、5.5/low、Luna/low 或 medium，准确 ID 见 [配置校验](src/contracts.mjs)。`direct` 沿用主会话模型。新版正在解除历史白名单与宿主能力之间的错误绑定。
+`workRoot` is the base directory for task file paths. Point it at the code you intend to modify; the example's `work/` is only a placeholder. It may equal `projectRoot` when the code lives there, while control and knowledge directories remain separate.
 
-把填写后的项目配置保存在本机，例如 `<项目目录>/.codex-workbench/project.json`，并在该项目的 `AGENTS.md` 中登记：
+The prototype currently accepts only Spark/low, 5.5/low, and Luna/low or medium for its executor configuration; exact IDs are in [configuration validation](src/contracts.mjs). The direct route retains the lead conversation's model. Removing this historical allowlist is part of the ongoing upgrade.
+
+Save the project configuration locally, for example at `<project>/.codex-workbench/project.json`, and add its location to that project's `AGENTS.md`:
 
 ```text
-本项目使用 codex-project-workbench。
-项目配置：<项目目录>/.codex-workbench/project.json（替换为本机绝对路径）
-执行前核对 projectId、workRoot、vaultRoot 和真实任务身份。
+This project uses codex-project-workbench.
+Project configuration: <absolute project path>/.codex-workbench/project.json
+Before execution, verify projectId, workRoot, vaultRoot, and real conversation identities.
 ```
 
-多项目总览还需要登记表。安装脚本目前只保存登记表位置，需在本仓库创建 `.local/` 目录，再创建 `.local/projects.json`：
+For a portfolio view, create `.local/` in the Workbench clone and add `.local/projects.json`. The installer records this location but does not create the registry:
 
 ```json
 {
@@ -113,78 +142,73 @@ $nodeExecutable = (Get-Command node).Source
 }
 ```
 
-替换为实际配置绝对路径；增加项目时追加一项，已有登记表应合并而非覆盖。该位置对应已安装 Skill 的 `runtime.json` 中的 `registry`，`.local/` 已被 Git 忽略；其他项目中的真实配置也应加入各自的忽略规则。
+Use real absolute paths. Append to an existing registry rather than replacing it. The installed Skill's `runtime.json` records its `registry` location, CLI path, and Node executable. Workbench ignores `.local/`; keep real configuration, identities, and logs out of other project repositories as well.
 
-- 项目配置由该项目的 `AGENTS.md` 指向。
-- CLI、Node 和登记表路径位于安装后 Skill 目录的 `runtime.json`。
-- 项目知识、真实会话身份、运行配置与日志保存在本机。
-- 真实会话创建依赖宿主工具和用户授权，不能用示例 ID 代替。
+### 4. Return to Codex
 
-### 4. 回到 Codex 对话
+In a registered lead conversation:
 
-在已登记的负责人任务中提出需求：
+> Use codex-project-workbench to implement this change. Retrieve the relevant project knowledge, choose an execution route based on dependencies, make the change, run checks and integration acceptance, and retain useful findings.
 
-> 使用 codex-project-workbench 完成这个项目的需求。先检索必要项目知识，再按依赖选择执行方式，完成代码修改、自测和集成验收，并保存有效经验。
+After setup, the day-to-day interface is the Codex conversation. The CLI provides internal control and diagnostics. See [request examples](examples/request.example.json) and [recovery rules](skills/codex-project-workbench/references/recovery.md) for the prototype's contracts.
 
-完成安装和登记后，日常操作入口是 Codex 对话。CLI 用于 Skill 内部控制和必要诊断。原型请求格式见 [请求示例](examples/request.example.json)，异常接续见 [恢复规则](skills/codex-project-workbench/references/recovery.md)。
+## Framework, workflow, and host
 
-## 框架与 Coding Agent 如何分层
-
-| 部分 | 负责什么 |
+| Layer | Responsibility |
 | --- | --- |
-| 编排核心 | 项目与任务身份、依赖、状态、写入归属、结果核验；新版补充计划版本、跨项目资源与交接协议 |
-| Coding Agent 工作台 | 将这些机制用于理解仓库、修改代码、运行测试、集成与交付 |
-| Codex 宿主与适配 | 实际对话、模型执行、工具和子智能体；适配代码核对身份、目录和宿主回执 |
+| Orchestration core | Project/task identity, dependencies, state, file ownership, and result validation; the upgrade adds plan versions, global resources, and handoff protocols |
+| Coding workflow | Apply those mechanisms to repository analysis, code changes, tests, integration, and delivery |
+| Codex host and adapter | Real conversations, model execution, tools, and subagents; the adapter verifies identities, directories, and host receipts |
 
-实现保留 **Node.js/ESM、SQLite、Markdown、FTS5/BM25**。当前 LangGraph 连接结果收集、派工、验收和知识保存，并提供图检查点。第一轮继续复用；新版领域合同保持独立，不要求先重写基础设施。
+The implementation uses **Node.js/ESM, SQLite, Markdown, and FTS5/BM25**. LangGraph currently connects collection, dispatch, acceptance, and knowledge capture, with graph checkpoints. The first upgrade reuses this implementation while keeping new domain contracts independent of its internal types.
 
-图检查点不会自动迁移 Codex 的对话上下文。交接需要真实的新上下文、有效输入和可核对的状态；向旧会话发送摘要不会清除它的历史。
+A graph checkpoint does not migrate a Codex conversation. A handoff still needs a real context boundary, valid inputs, and verifiable state. Sending a summary to an existing conversation does not erase its history.
 
-知识检索按显式项目范围进行，Markdown 是原文，SQLite 是索引。默认不要求向量数据库或 embedding 服务。检索材料只提供信息，不授予执行权限。详见 [知识约定](skills/codex-project-workbench/references/knowledge.md)。
+Knowledge retrieval is project-scoped. Markdown holds the source text; SQLite holds the index. The default path does not require a vector database or embedding service. Retrieved content is information, not execution authority. See [knowledge rules](skills/codex-project-workbench/references/knowledge.md).
 
-## 验证与证据
+## Evidence, with boundaries
 
-历史报告保留成功、失败与成本，不以启动的 Agent 数量代替交付质量。
+Historical reports preserve failures and coordination costs alongside successful runs.
 
-| 已记录的验证 | 证据范围 |
+| Recorded validation | Scope |
 | --- | --- |
-| direct、native、Desktop 三路线与知识保存/检索 | 有界真实任务，见 [流程验证](docs/verification.md) |
-| 双项目与三项目协作 | 编码峰值为 6；9 人重叠出现在知识交付阶段，见 [多项目试验](docs/dispatch-scale-results-20260912.md) |
-| 合并入口、批量绑定与暂停/重复调用边界 | 原型提交 `8c85c76` 对应记录为 154 通过、1 项平台跳过，见 [执行入口验证](docs/lightweight-execution-results-20260913.md) |
-| 阶段交接与实际协调成本 | 有交接观察，也记录额外开销，见 [交接报告](docs/stage-handoff-results-20260912.md) 与 [交付成本](docs/normal-prereview-results-20260912.md) |
+| Three execution routes and the knowledge capture/retrieval loop | Bounded live tasks; [workflow report](docs/verification.md) |
+| Two- and three-project coordination | Coding concurrency peaked at 6; the 9-worker overlap occurred during knowledge delivery; [scale report](docs/dispatch-scale-results-20260912.md) |
+| Combined entry points, bulk binding, pause, and duplicate-call handling | The record for prototype commit `8c85c76` reports 154 passing tests and 1 platform skip; [execution report](docs/lightweight-execution-results-20260913.md) |
+| Stage handoffs and coordination overhead | Handoff observations include added costs; [handoff report](docs/stage-handoff-results-20260912.md) and [delivery costs](docs/normal-prereview-results-20260912.md) |
 
-这些历史记录不能作为新版功能完成证明，目前也没有足够的公平对照支持固定提速或节省比例。
+These records do not establish that the new workflow is complete. There is no adequate controlled evidence for a fixed speedup or cost-saving percentage.
 
-新版首个完整案例将从一个主入口推进三个独立项目：A 修改需求并更新计划，B 中断后交接接续，C 在资源调整后继续。验收检查错项目派工、旧版本结果、重复开发、暂停行为与实际交付，详见 [开发规范](DEVELOPMENT.md)。
+The first full acceptance case will run three separate projects from one coordinator: revise A's requirements, resume B after an interruption, and let C progress after resource changes. It checks project routing, stale results, duplicate work, pause behavior, and actual delivery. See the [development spec](DEVELOPMENT.md).
 
 <details>
-<summary>更多实现、对照与边界记录</summary>
+<summary>Implementation notes, comparisons, and boundary investigations</summary>
 
-- [当前原型架构](docs/architecture.md) · [实现契约](docs/implementation-contract.md)。
-- [对照协议](docs/comparison-protocol.md) · [包含失败与污染问题的结果](docs/comparison-results.md)。
-- [检索重排未采用结果](docs/smart-retrieval-results-20260912.md) · [规则按需读取](docs/guidance-results-20260912.md)。
-- [异常接续提醒](docs/continue-gate-results-20260912.md) · [链路观察](docs/observability-results-20260912.md)。
-- [Desktop 隔离调查](docs/desktop-isolation-results-20260911.md) · [Hook 故障反例](docs/desktop-hooks-results-20260911.md) · [宿主授权边界](docs/desktop-tool-authorization-assessment-20260911.md)。
+- [Prototype architecture](docs/architecture.md) · [Implementation contract](docs/implementation-contract.md).
+- [Comparison protocol](docs/comparison-protocol.md) · [Results including failures and contamination](docs/comparison-results.md).
+- [Retrieval reranking not adopted](docs/smart-retrieval-results-20260912.md) · [On-demand rules](docs/guidance-results-20260912.md).
+- [Continuation advice](docs/continue-gate-results-20260912.md) · [Trace analysis](docs/observability-results-20260912.md).
+- [Desktop isolation](docs/desktop-isolation-results-20260911.md) · [Hook failure cases](docs/desktop-hooks-results-20260911.md) · [Host authorization boundaries](docs/desktop-tool-authorization-assessment-20260911.md).
 
 </details>
 
-独立会话与文件写入归属不等于严格的读取权限隔离。当前 Desktop 适配使用版本相关的内部接口；应用关闭后的自动唤醒、全工具隔离与更大并发规模均须分别验证。
+Separate conversations and write ownership are not a strict read-access sandbox. The Desktop adapter uses version-sensitive internal interfaces. Offline wakeup, full-tool isolation, and larger concurrency limits require their own validation.
 
-## 接下来的开发
+## Roadmap
 
-[DEVELOPMENT.md](DEVELOPMENT.md) 是开发规则来源，[开发进度](docs/development-status.md) 记录实际提交和验证结果。
+[DEVELOPMENT.md](DEVELOPMENT.md) defines the implementation contracts; [development status](docs/development-status.md) tracks commits and actual verification.
 
-| 阶段 | 交付目标 |
+| Stage | Deliverable |
 | --- | --- |
-| WB-00–03 | 宿主能力基线、核心合同、计划版本与项目路由 |
-| WB-04–07 | 阶段推进、上下文交接、局部调整与全局资源 |
-| WB-08 | 三项目真实案例及失败恢复验收 |
-| WB-09–10 | 有预算的对照评测、安装说明、兼容矩阵与功能版本发布 |
+| WB-00–03 | Host baseline, core contracts, plan versions, and project routing |
+| WB-04–07 | Phase execution, context handoffs, local revisions, and global resources |
+| WB-08 | A live three-project acceptance case, including failure recovery |
+| WB-09–10 | Budgeted comparative evaluation, installation, compatibility, and release |
 
-源码与开发规范已经开源。新版功能按里程碑发布，README 随已验证的交付更新能力表。
+The source and development specification are open. Capability claims will follow verified milestones. The detailed specification and historical reports are currently in Chinese.
 
-## 参与和许可
+## Contributing and license
 
-复现安装问题、检验交接边界、补充有界真实案例或完善测试，都可以从 [贡献指南](CONTRIBUTING.md) 开始。提交问题时请注明版本、复现步骤和实际结果，并移除私有路径、凭据和对话内容。
+Help reproduce installation issues, exercise handoff boundaries, contribute bounded real-world cases, or improve tests. Start with [the contribution guide](CONTRIBUTING.md). Include versions, reproduction steps, and observed results; remove private paths, credentials, and conversation content.
 
-原创代码采用 [MIT License](LICENSE)。部分成本、检索与规则组织实现参考或适配了 Ruflo，来源、固定提交与保留声明见 [第三方说明](third_party/README.md)；其他声明见 [licenses](licenses/)。
+Original code is licensed under [MIT](LICENSE). Selected cost, retrieval, and rule-organization mechanisms reference or adapt Ruflo; see [third-party attribution](third_party/README.md) for pinned sources and retained notices, and [licenses](licenses/) for other notices.

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Agent Workbench</title>
+  <desc id="desc">Design direction: one coordinator conversation connects three independent project contexts. A Codex-native open-source prototype for planning, delegation and handoffs.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#c4d9df" opacity="0.12"/>
+    </pattern>
+  </defs>
+  <rect x="0.5" y="0.5" width="1199" height="479" rx="20" fill="#101c23" stroke="#293b45"/>
+  <rect x="618" y="96" width="551" height="320" fill="url(#grid)"/>
+  <g font-family="'Segoe UI', Arial, 'Microsoft YaHei', sans-serif">
+    <g transform="translate(52 36)" stroke="#8edbbf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="40" height="40" rx="10" fill="#203943" stroke="#293b45"/>
+      <path d="M12 14v12m0-6h8m0-7v14m0-14h8m-8 7h8m-8 7h8"/>
+      <circle cx="28" cy="13" r="2" fill="#8edbbf" stroke="none"/>
+      <circle cx="28" cy="20" r="2" fill="#8edbbf" stroke="none"/>
+      <circle cx="28" cy="27" r="2" fill="#8edbbf" stroke="none"/>
+    </g>
+    <text x="108" y="62" fill="#eef2ee" font-size="16" font-weight="650" letter-spacing="1">CODEX AGENT WORKBENCH</text>
+    <rect x="994" y="41" width="152" height="28" rx="14" stroke="#293b45" fill="#172a33"/>
+    <text x="1070" y="59" text-anchor="middle" fill="#a5b5ba" font-size="10" font-weight="600" letter-spacing="1.1">OPEN SOURCE / MIT</text>
+
+    <text x="52" y="164" fill="#eef2ee" font-size="46" font-weight="650" letter-spacing="-1.5">One conversation.</text>
+    <text x="52" y="224" fill="#8edbbf" font-size="46" font-weight="650" letter-spacing="-1.5">Projects in focus.</text>
+    <text x="54" y="270" fill="#a5b5ba" font-size="21" letter-spacing="0.4">A focused context for every project.</text>
+
+    <path d="M54 319h490" stroke="#293b45"/>
+    <text x="54" y="346" fill="#8edbbf" font-size="11" font-weight="650" letter-spacing="1.4">01 / PLAN</text>
+    <text x="221" y="346" fill="#91bce8" font-size="11" font-weight="650" letter-spacing="1.4">02 / DELEGATE</text>
+    <text x="416" y="346" fill="#e9bb87" font-size="11" font-weight="650" letter-spacing="1.4">03 / VERIFY</text>
+    <text x="54" y="373" fill="#a5b5ba" font-size="15">Development plan</text>
+    <text x="221" y="373" fill="#a5b5ba" font-size="15">Task delegation</text>
+    <text x="416" y="373" fill="#a5b5ba" font-size="15">Verified delivery</text>
+
+    <path d="M600 111v291" stroke="#293b45"/>
+    <text x="648" y="107" fill="#a5b5ba" font-size="10" font-weight="650" letter-spacing="1.6">SCOPED PROJECT CONTEXTS</text>
+
+    <path d="M762 268h36V164h38" stroke="#8edbbf" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M762 268h74" stroke="#91bce8" stroke-width="1.5"/>
+    <path d="M762 268h36v104h38" stroke="#e9bb87" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="798" cy="268" r="4" fill="#101c23" stroke="#91bce8" stroke-width="1.5"/>
+
+    <rect x="648" y="232" width="114" height="72" rx="12" fill="#203943" stroke="#293b45"/>
+    <circle cx="670" cy="254" r="3" fill="#8edbbf"/>
+    <text x="686" y="258" fill="#a5b5ba" font-size="10" letter-spacing="0.9">MAIN AGENT</text>
+    <text x="705" y="284" text-anchor="middle" fill="#eef2ee" font-size="14" font-weight="600">Coordinator</text>
+    <text x="705" y="326" text-anchor="middle" fill="#a5b5ba" font-size="10" letter-spacing="1">ONE ENTRY</text>
+
+    <g transform="translate(836 126)">
+      <rect width="310" height="76" rx="12" fill="#172a33" stroke="#293b45"/>
+      <rect x="0" y="20" width="3" height="36" rx="1.5" fill="#8edbbf"/>
+      <rect x="17" y="18" width="40" height="40" rx="9" fill="#203943"/>
+      <text x="37" y="45" text-anchor="middle" fill="#8edbbf" font-size="20" font-weight="650">A</text>
+      <text x="76" y="31" fill="#eef2ee" font-size="13" font-weight="650" letter-spacing="1.4">PROJECT A</text>
+      <text x="76" y="53" fill="#a5b5ba" font-size="12">plan / context / evidence</text>
+      <path d="M278 27h10m-5-5 5 5-5 5" fill="none" stroke="#8edbbf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(836 230)">
+      <rect width="310" height="76" rx="12" fill="#172a33" stroke="#293b45"/>
+      <rect x="0" y="20" width="3" height="36" rx="1.5" fill="#91bce8"/>
+      <rect x="17" y="18" width="40" height="40" rx="9" fill="#203943"/>
+      <text x="37" y="45" text-anchor="middle" fill="#91bce8" font-size="20" font-weight="650">B</text>
+      <text x="76" y="31" fill="#eef2ee" font-size="13" font-weight="650" letter-spacing="1.4">PROJECT B</text>
+      <text x="76" y="53" fill="#a5b5ba" font-size="12">plan / context / evidence</text>
+      <path d="M278 27h10m-5-5 5 5-5 5" fill="none" stroke="#91bce8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(836 334)">
+      <rect width="310" height="76" rx="12" fill="#172a33" stroke="#293b45"/>
+      <rect x="0" y="20" width="3" height="36" rx="1.5" fill="#e9bb87"/>
+      <rect x="17" y="18" width="40" height="40" rx="9" fill="#203943"/>
+      <text x="37" y="45" text-anchor="middle" fill="#e9bb87" font-size="20" font-weight="650">C</text>
+      <text x="76" y="31" fill="#eef2ee" font-size="13" font-weight="650" letter-spacing="1.4">PROJECT C</text>
+      <text x="76" y="53" fill="#a5b5ba" font-size="12">plan / context / evidence</text>
+      <path d="M278 27h10m-5-5 5 5-5 5" fill="none" stroke="#e9bb87" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <path d="M52 424h1094" stroke="#293b45"/>
+    <text x="54" y="451" fill="#a5b5ba" font-size="10" font-weight="600" letter-spacing="1.5">CODEX NATIVE · PROJECT AWARE</text>
+    <text x="1146" y="451" text-anchor="end" fill="#a5b5ba" font-size="10" letter-spacing="1.2">DESIGN DIRECTION / PROTOTYPE</text>
+  </g>
+</svg>
