@@ -92,6 +92,29 @@ $nodeExecutable = (Get-Command node).Source
 
 依据 [项目配置示例](examples/project.example.json)，填写真实项目目录、独立知识范围和现有负责人/执行者身份；按 [执行约定](skills/codex-project-workbench/references/execution.md) 登记配置与项目入口。
 
+`workRoot` 是任务文件路径的基准，应指向实际待修改的代码目录；示例中的 `work/` 只是占位。如果代码直接位于项目根，可将 `workRoot` 设为 `projectRoot`，同时让控制目录与知识目录各自独立。配置中的 `model` / `thinking` 用于执行者；原型校验目前仅接受 Spark/low、5.5/low、Luna/low 或 medium，准确 ID 见 [配置校验](src/contracts.mjs)。`direct` 沿用主会话模型。新版正在解除历史白名单与宿主能力之间的错误绑定。
+
+把填写后的项目配置保存在本机，例如 `<项目目录>/.codex-workbench/project.json`，并在该项目的 `AGENTS.md` 中登记：
+
+```text
+本项目使用 codex-project-workbench。
+项目配置：<项目目录>/.codex-workbench/project.json（替换为本机绝对路径）
+执行前核对 projectId、workRoot、vaultRoot 和真实任务身份。
+```
+
+多项目总览还需要登记表。安装脚本目前只保存登记表位置，需在本仓库创建 `.local/` 目录，再创建 `.local/projects.json`：
+
+```json
+{
+  "projects": [
+    {"config": "D:/Projects/project-a/.codex-workbench/project.json"},
+    {"config": "D:/Projects/project-b/.codex-workbench/project.json"}
+  ]
+}
+```
+
+替换为实际配置绝对路径；增加项目时追加一项，已有登记表应合并而非覆盖。该位置对应已安装 Skill 的 `runtime.json` 中的 `registry`，`.local/` 已被 Git 忽略；其他项目中的真实配置也应加入各自的忽略规则。
+
 - 项目配置由该项目的 `AGENTS.md` 指向。
 - CLI、Node 和登记表路径位于安装后 Skill 目录的 `runtime.json`。
 - 项目知识、真实会话身份、运行配置与日志保存在本机。
