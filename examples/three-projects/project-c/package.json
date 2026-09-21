@@ -1,0 +1,1 @@
+{"name":"workbench-fixture-c","private":true,"type":"module","scripts":{"test":"node --test acceptance/v1.test.mjs"}}

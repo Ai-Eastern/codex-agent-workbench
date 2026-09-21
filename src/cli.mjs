@@ -3,7 +3,10 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {configFrom,readJson,safePath,digest} from './contracts.mjs';
-import {begin,finish,prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,submitResult,claimNative,bindNative,bindNativeBatch,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask} from './workflow.mjs';
+import {begin,finish,prepare,status,pause,advance,delivery,listRuns,knowledge,promptFor,getPacket,submitResult,claimNative,bindNative,bindNativeBatch,retryAcceptance,repairTask,repairKnowledge,reconcileDispatch,repairBlockedTask,preparePhase,phaseStatus,advancePlan,reconcilePhasePreparation,supersedePhase} from './workflow.mjs';
+import {publishPlan,parsePlanMarkdown,activePlan} from './plan.mjs';
+import {createHandoff,acceptHandoff} from './handoff.mjs';
+import {registerPortfolio,routeProject,observeProject,portfolioStatus,reserveWorkers,releaseWorkers,releaseUndispatched,pausePortfolio,revisePortfolio} from './portfolio.mjs';
 import {desktopClient,sanitizeErrorDetail} from './desktop.mjs';
 import {armPortfolioBarrier,releasePortfolioBarrier} from './portfolio-barrier.mjs';
 import {costReport,costDiff} from './cost-report.mjs';
@@ -14,7 +17,9 @@ export async function main(args=process.argv.slice(2)){
   if(!args.length||['help','--help','-h'].includes(args[0]))return {
     usage:'node <cli> <command> --project /absolute/project.json [--name value]',
     search:'node <cli> search --project /absolute/project.json --query "task keywords"',
-    commands:['begin','finish','prepare','preflight','start','continue','submit','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    commands:['plan-publish','plan-status','phase-prepare','phase-reconcile','phase-supersede','plan-advance','handoff-create','handoff-accept','portfolio-register','portfolio-status','portfolio-observe','portfolio-route','portfolio-reserve','portfolio-release','portfolio-release-undispatched','portfolio-pause','portfolio-revise','begin','finish','prepare','preflight','start','continue','submit','delivery','pause','reconcile-dispatch','repair-blocked-task','retry-acceptance','repair-task','repair-knowledge','status','packet','claim','bind','search','index','capture','portfolio','release-portfolio','cost-report','cost-diff','trace-report'],
+    plans:'plan-publish --source <Markdown or JSON> --expected-revision <n> --reason <text>; phase-prepare --group <JSON>; plan-advance --run <id> [--resume true]. New plan commands require explicit model and thinking in project configuration.',
+    portfolios:'portfolio-register/status/observe/route/reserve/release/release-undispatched/pause/revise use --registry <private JSON>. Project actions use --project-id; resource mutations require --epoch. Revision uses --next-registry, --expected-revision and --reason. Pause/resume uses explicit --paused true|false. release-undispatched requires a verified phase-supersede record.',
     lightweight:'begin --request <request.json> for new direct/native work; finish for direct PM submission and acceptance. bind accepts --bindings <JSON taskId-to-childUUID object>.',
     compact:'Add --view compact [--max-output-chars 12000]; full output is saved automatically under controlRoot/views. needsRead requires reading those details before action.',
     note:'Read the installed Skill execution reference for command-specific arguments. portfolio uses --registry instead of --project.'
@@ -46,6 +51,23 @@ export async function main(args=process.argv.slice(2)){
   }finally{fs.closeSync(fd);}
 }
 async function execute(command,opts){
+  if(command.startsWith('portfolio-')){
+    if(!opts.registry)throw Error('--registry /absolute/private-registry.json is required');
+    const input=path.resolve(opts.registry),options={projectId:opts['project-id'],runId:opts.run,expectedEpoch:Number(opts.epoch)};
+    if(command==='portfolio-register')return registerPortfolio(input);
+    if(command==='portfolio-status')return portfolioStatus(input,{afterSequence:Number(opts.after??0)});
+    if(command==='portfolio-observe')return observeProject(input,opts['project-id']);
+    if(command==='portfolio-route')return routeProject(input,opts['project-id']);
+    if(command==='portfolio-reserve')return reserveWorkers(input,options);
+    if(command==='portfolio-release')return releaseWorkers(input,options);
+    if(command==='portfolio-release-undispatched')return releaseUndispatched(input,options);
+    if(command==='portfolio-pause'){
+      if(!['true','false'].includes(opts.paused))throw Error('--paused must explicitly be true or false');
+      return pausePortfolio(input,{...options,paused:opts.paused==='true'});
+    }
+    if(command==='portfolio-revise')return revisePortfolio(input,path.resolve(opts['next-registry']),{expectedRevision:Number(opts['expected-revision']),expectedEpoch:Number(opts.epoch),reason:opts.reason});
+    throw Error('Unknown portfolio command');
+  }
   if(command==='cost-report'||command==='cost-diff'){
     const result=command==='cost-report'?await costReport(readJson(opts.manifest)):costDiff(readJson(opts.baseline),readJson(opts.current));
     if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.complete};}
@@ -57,7 +79,24 @@ async function execute(command,opts){
     return {projects:projects.map(p=>listRuns(configFrom(p.config)))};
   }
   if(!opts.project)throw Error('--project /absolute/project.json is required');
-  const cfg=configFrom(path.resolve(opts.project));
+  const cfg=configFrom(path.resolve(opts.project),{requireExplicitModel:/^(plan|phase|handoff)-/.test(command)});
+  if(command==='handoff-create')return createHandoff(cfg,readJson(opts.request));
+  if(command==='handoff-accept'){
+    const request=readJson(opts.request);
+    return acceptHandoff(cfg,{...request,desktop:desktopClient(cfg,{readOnlyThreadIds:[request.sessionEvidence?.sourceThreadId]})});
+  }
+  if(command==='plan-publish'){
+    const source=fs.readFileSync(opts.source,'utf8').replace(/^\uFEFF/,'');
+    return publishPlan(cfg,path.extname(opts.source).toLowerCase()==='.json'?JSON.parse(source):parsePlanMarkdown(source,cfg),{expectedRevision:Number(opts['expected-revision']),reason:opts.reason});
+  }
+  if(command==='plan-status')return {active:activePlan(cfg),...phaseStatus(cfg)};
+  if(command==='phase-prepare')return preparePhase(cfg,readJson(opts.group));
+  if(command==='phase-reconcile')return reconcilePhasePreparation(cfg,opts.run);
+  if(command==='phase-supersede')return supersedePhase(cfg,opts.run,{expectedPlanRevision:Number(opts['expected-revision']),reason:opts.reason});
+  if(command==='plan-advance'){
+    const current=status(cfg,opts.run);
+    return advancePlan(cfg,opts.run,{desktop:current.mode==='langgraph'?desktopClient(cfg):undefined,resume:opts.resume==='true'});
+  }
   if(command==='trace-report'){
     const result=traceReport(cfg,opts.run,{cost:opts['cost-report']?readJson(opts['cost-report']):undefined});
     if(opts.output){if(!path.isAbsolute(opts.output))throw Error('--output must be absolute');fs.writeFileSync(opts.output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});return {output:opts.output,complete:result.controller.complete};}
@@ -123,7 +162,7 @@ async function execute(command,opts){
       const {packets,...summary}=result;
       return {...summary,awaitingResults:packets.map(p=>({taskId:p.taskId,receiptPath:p.receiptPath}))};
     }
-    return {...result,packets:result.packets.map(p=>({...p,prompt:promptFor(p)}))};
+    return {...result,packets:result.packets.map(p=>({...p,prompt:promptFor(p,{projectConfig:cfg.configFile})}))};
   }
   if(command==='packet'){
     return getPacket(cfg,opts.run,opts.task);

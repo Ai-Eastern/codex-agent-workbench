@@ -109,7 +109,7 @@ test('explicit Spark profile reaches task packets without silently replacing the
   assert.equal(result.packets[0].model,'gpt-5.3-codex-spark');
   assert.throws(()=>status(cfg,'spark-profile'),/configuration changed/);
   writeJson(file,{...cfg,model:'unapproved-model'});
-  assert.throws(()=>configFrom(file),/profile/);
+  assert.equal(configFrom(file).model,'unapproved-model'); // Availability is a host check, not a historical allowlist.
 });
 test('Luna medium survives configuration, all route packets and native claim prompts',async t=>{
   for(const mode of ['direct','native','langgraph']){
@@ -127,7 +127,7 @@ test('Luna medium survives configuration, all route packets and native claim pro
       assert.match(claimNative(cfg,run,'A').prompt,/gpt-5\.6-luna\/medium/);
     }
     writeJson(file,{...cfg,thinking:'ultra'});
-    assert.throws(()=>configFrom(file),/profile/);
+    assert.equal(configFrom(file).thinking,'ultra');
     const legacy={...p,model:'gpt-5.5'};delete legacy.thinking;
     if(mode==='direct')assert.match(promptFor(legacy),/PM，沿用当前指定模型与推理档位/);
     else assert.match(promptFor(legacy),/gpt-5\.5\/low/);

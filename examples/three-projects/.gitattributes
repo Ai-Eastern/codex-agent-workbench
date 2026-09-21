@@ -1,0 +1,2 @@
+# Frozen acceptance hashes must survive Windows and Unix checkouts unchanged.
+* text eol=lf

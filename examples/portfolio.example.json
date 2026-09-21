@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "portfolioId": "demo-portfolio",
+  "revision": 1,
+  "coordinatorEpoch": 1,
+  "budget": {"maxActiveWorkers": 3, "maxAttemptsPerTask": 2},
+  "projects": [
+    {"projectId": "project-a", "planId": "bulk-import", "acceptedPlanRevision": 1, "priority": 3},
+    {"projectId": "project-b", "planId": "sdk-compatibility", "acceptedPlanRevision": 1, "priority": 2},
+    {"projectId": "project-c", "planId": "search-order", "acceptedPlanRevision": 1, "priority": 1}
+  ],
+  "dependencies": []
+}

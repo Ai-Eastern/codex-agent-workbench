@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "projectId": "example-project",
+  "planId": "normalize-labels",
+  "revision": 1,
+  "objective": "Implement the agreed label normalization contract and verify its frozen acceptance criteria.",
+  "constraints": ["Keep task files inside the registered project work directory."],
+  "phases": [{
+    "id": "implement",
+    "dependsOn": [],
+    "maxNativeWorkers": 1,
+    "decision": {
+      "topology": "serial",
+      "carrier": "native",
+      "context": "select",
+      "reason": "One bounded task can use one native executor with project-scoped context."
+    }
+  }],
+  "tasks": [{
+    "id": "normalize",
+    "revision": 1,
+    "phaseId": "implement",
+    "dependsOn": [],
+    "executor": "native",
+    "objective": "Normalize labels according to label-contract-v1.",
+    "files": ["normalize.mjs"],
+    "contextRefs": ["label-contract-v1"],
+    "acceptanceRefs": ["label-acceptance-v1"]
+  }]
+}

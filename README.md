@@ -32,7 +32,7 @@
 A coding workflow and agent orchestration framework built around Codex. Talk to a lead agent while project leads keep their own context and choose between direct execution, native subagents, and separate conversations.
 
 > **Runnable prototype · Multi-project upgrade in development**<br>
-> The prototype already supports three execution routes, project knowledge retrieval, and verified delivery receipts. Versioned development plans, adaptive multi-project scheduling, and automatic context handoffs are being built. The header illustrates the design direction; see [Capabilities](#capabilities) for the current scope.
+> This checkout adds versioned plans, scoped portfolio routing, resource reservations, and verified handoff records to the existing three execution routes. These additions have deterministic controller tests; the full real Codex three-project acceptance remains pending. The header illustrates the design direction; see [Capabilities](#capabilities) for the current scope.
 
 ## Start with one conversation
 
@@ -72,7 +72,7 @@ Each lead uses **0–3 native subagents** according to the task. Separate projec
 
 ## Capabilities
 
-This table separates the prototype on the default branch from the new workflow. Implementation branches and their verification records may be ahead of the default branch.
+This table describes this checkout. Controller tests, historical live observations, and the new live acceptance target are separate evidence levels; see the [progress record](docs/development-status.md).
 
 | Capability | Status |
 | --- | --- |
@@ -80,17 +80,17 @@ This table separates the prototype on the default branch from the new workflow. 
 | Frozen task packets, identity binding, file ownership, duplicate-request protection, and artifact receipts | Implemented |
 | Markdown knowledge, Chinese-aware FTS5/BM25 retrieval, source binding, and capture after acceptance | Implemented |
 | Pause, uncertain-delivery reconciliation, failure records, and controlled continuation | Implemented; pause stops new dispatch, not necessarily in-flight work |
-| Short handoffs and continuation in a new conversation | Bounded validation exists; automatic rotation and versioned acceptance are planned |
-| Development plans, phase scheduling, local revisions, and stale-result compatibility checks | In development |
-| Multi-project resource allocation, incremental status, and fair scheduling from one entry point | In development; earlier multi-project trials do not establish completion |
-| A three-project scenario with requirement changes, interruption recovery, and scoped pauses | Release acceptance target |
+| Versioned handoffs, identity transfer, and continuation of the original attempt | Implemented and fixture-tested; real new-context acceptance pending |
+| Development plans, phase scheduling, local revisions, and stale-result rejection | Implemented and controller-tested; immutable snapshots preserve old attempts |
+| Portfolio routing, incremental status, atomic quotas, pauses, and fair allocation | Implemented and controller-tested; no automatic creation permission is implied |
+| A three-project scenario with requirement changes, interruption recovery, and scoped pauses | Frozen fixtures and evidence verifier available; real host run remains the release gate |
 | `1-4-12` and repeatable efficiency improvements | Not yet validated |
 
 The prototype calls its Desktop route `langgraph`. That is a legacy route name. LangGraph itself is an internal workflow and checkpoint component, distinct from the execution host and conversation identities.
 
 ## Get started
 
-The current installation path targets **Windows, Node.js 24+, Git, and Codex Desktop**. Desktop integration depends on the host version and available tools. The new compatibility matrix is being established under the [development spec](DEVELOPMENT.md).
+The current installation path targets **Windows, Node.js 24+, Git, and Codex Desktop**. Desktop integration depends on the host version and available tools. Read the [host capability matrix](docs/host-capabilities.md), [installation details](docs/installation.md), and [three-project procedure](docs/three-project-demo.md).
 
 ### 1. Clone and check the source
 
@@ -121,7 +121,7 @@ Start from [the project configuration example](examples/project.example.json). S
 
 `workRoot` is the base directory for task file paths. Point it at the code you intend to modify; the example's `work/` is only a placeholder. It may equal `projectRoot` when the code lives there, while control and knowledge directories remain separate.
 
-The prototype currently accepts only Spark/low, 5.5/low, and Luna/low or medium for its executor configuration; exact IDs are in [configuration validation](src/contracts.mjs). The direct route retains the lead conversation's model. Removing this historical allowlist is part of the ongoing upgrade.
+Model and reasoning values are preserved exactly after syntax validation. New plan commands require both fields explicitly; the host still decides whether a combination is supported. Accepted configuration is not evidence of the model actually served. The direct route retains the lead conversation's model.
 
 Save the project configuration locally, for example at `<project>/.codex-workbench/project.json`, and add its location to that project's `AGENTS.md`:
 
