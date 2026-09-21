@@ -1,5 +1,9 @@
 # Codex Agent Workbench
 
+**开源原型，正在升级为“多项目 Agent 编排框架 + Codex 编程工作台”。** 目标是在一个主对话中推进多个项目，由独立项目上下文承接开发，按计划选择分工并处理变化。新版功能按里程碑实现，下面的历史验证仅适用于对应版本。
+
+[开发规范与任务卡](DEVELOPMENT.md) · [当前开发进度](docs/development-status.md) · [参与贡献](CONTRIBUTING.md) · [MIT 许可证](LICENSE)
+
 **在 Codex Desktop 中连接 Skill、本地 RAG 与多 Agent 编程调度。** 保留项目侧栏和现有角色任务，由总经理协调项目，项目经理按任务选择执行方式，交付后保存可检索、有来源的项目经验。
 
 目前已用于有界的真实离线开发，跑通任务分流、执行接续、一次集成验收与知识回写。当前重点是减少重复交接、规则读取和报告动作，并记录真实交付成本；尚未得出固定提速、降错或节省比例。
@@ -104,20 +108,22 @@ GM 保持 **2 次**顶层工具调用、发送后没有重复报告，完整轮�
 
 ## 快速开始
 
-技术栈：**Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。仓库为私有仓库，访问需要相应权限。当前角色配置为总经理 `gpt-6-astra/ultra`、PM `gpt-5.6-sol/high`、工程师 `gpt-5.6-luna/medium`；历史 Spark、5.5 验证分别保留，不等于所有模型组合均已认证。
+技术栈：**Node.js 24、LangGraph.js、SQLite、FTS5/BM25**。原创代码采用 MIT 许可证，第三方声明另行保留。模型与推理强度按用户明确配置；历史模型验证记录不等于所有组合均已认证。第一轮保留 LangGraph 内部流程实现，详见开发规范中的依赖边界。
 
 首次安装，在仓库目录执行：
 
 ```powershell
 npm ci
-& ./scripts/install.ps1 -CodexRoot 'D:/Eastern/codex' -NodePath 'D:/tool/Node.js/node.exe'
+$codexDirectory = '<你的 Codex 配置目录绝对路径>'
+$nodeExecutable = (Get-Command node).Source
+& ./scripts/install.ps1 -CodexRoot $codexDirectory -NodePath $nodeExecutable
 ```
 
 以 [项目配置示例](examples/project.example.json) 登记真实项目根、知识范围和现有 PM／工程师任务身份，再使用 [请求示例](examples/request.example.json) 描述任务。安装脚本不会自动登记真实项目；已有 Skill 时拒绝直接覆盖。默认保留旧 Skill，显式 `-DisableLegacy` 迁移会保存备份，不清除旧任务历史或失败状态。
 
 | 入口 | 查找位置 |
 |---|---|
-| 安装后的 Skill | `D:/Eastern/codex/skills/codex-project-workbench/SKILL.md` |
+| 安装后的 Skill | `<Codex配置目录>/skills/codex-project-workbench/SKILL.md` |
 | CLI、Node、登记表路径 | **Skill 安装目录**的 `runtime.json` |
 | 当前项目配置 | 该项目 `AGENTS.md` 指定的路径 |
 | 执行、工作与知识目录 | 配置中的 `controlRoot`、`workRoot`、`vaultRoot` |
@@ -129,7 +135,9 @@ npm ci
 需要手动查询时，先把项目配置占位值替换为已登记的真实路径：
 
 ```powershell
-$runtime = Get-Content 'D:/Eastern/codex/skills/codex-project-workbench/runtime.json' -Raw | ConvertFrom-Json
+$codexDirectory = '<你的 Codex 配置目录绝对路径>'
+$runtimeFile = Join-Path $codexDirectory 'skills/codex-project-workbench/runtime.json'
+$runtime = Get-Content -LiteralPath $runtimeFile -Raw | ConvertFrom-Json
 $project = '<项目 AGENTS.md 中的真实配置绝对路径>'
 & $runtime.node $runtime.cli search --project $project --query '本次需求关键词'
 & $runtime.node $runtime.cli status --project $project
