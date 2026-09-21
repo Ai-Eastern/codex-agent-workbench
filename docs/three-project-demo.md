@@ -25,15 +25,18 @@ From the Workbench repository:
 
 ```sh
 node --test test/three-projects.test.mjs
+node --test test/three-projects-runtime.test.mjs
 node examples/three-projects/prepare.mjs
 node scripts/verify-three-projects.mjs
 ```
 
 The first command creates temporary copies, verifies named baseline failures, applies the reference implementation only to those copies, and checks the frozen acceptance. It also checks wrong-project config, A v1 versus v2, and malformed saved lifecycle evidence. Temporary Git repositories and synthetic receipts are removed on completion. Expected business baseline failures are A: 2, B: 3, C: 2; they are assertions inside the passing fixture test, not broken repository tests.
 
-The second command creates a new temporary directory containing three independent Git repositories and `setup.json` with the actual base commit for each. An optional destination must not already exist. It only initializes these directories, uses per-command Git identity/signing options, and does not edit global Git configuration. Commit IDs are recorded per setup run, not assumed to be identical across machines. Do not commit generated `.git` directories or evidence to Workbench.
+The runtime integration test uses three independent Git fixtures with the actual plan, portfolio, handoff and workflow controllers. It runs A v1, B v1, C v1 and A v2 through frozen `node:test` acceptance, verifies that A's revision preserves B/C snapshots, transfers B's paused original run and attempt to a separate configuration, and checks project/global pause plus a 2-to-1 worker limit. Reference patches supply the business code, and Desktop observations are injected fixtures. This tests controller composition and original receipt preservation, not real model delivery or a real new Desktop context.
 
-The third command has no manifest by default and returns `status: incomplete`, `hostAcceptance: false`, exit code 2. Missing real host evidence is an expected support gap. It does not create tasks, drive the controller, call a model, or manufacture a run.
+The prepare command creates a new temporary directory containing three independent Git repositories and `setup.json` with the actual base commit for each. An optional destination must not already exist. It only initializes these directories, uses per-command Git identity/signing options, and does not edit global Git configuration. Commit IDs are recorded per setup run, not assumed to be identical across machines. Do not commit generated `.git` directories or evidence to Workbench.
+
+The verifier has no manifest by default and returns `status: incomplete`, `hostAcceptance: false`, exit code 2. Missing real host evidence is an expected support gap. It does not create tasks, drive the controller, call a model, or manufacture a run.
 
 Inside each generated repository, use `node --test acceptance/v1.test.mjs` for the initial baseline. After A's approved revision, use `node --test acceptance/v2.test.mjs`. The integration harness can run the original frozen scripts against a worktree using `WORKBENCH_FIXTURE_ROOT`; this override is only a source location, not an identity or authorization.
 
