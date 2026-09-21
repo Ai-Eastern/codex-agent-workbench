@@ -1,0 +1,12 @@
+{
+  "id": "normalize-labels",
+  "objective": "Fix normalizeLabels: normalize Unicode NFKC, trim and collapse whitespace, lowercase, remove empty labels, and deduplicate while preserving order.",
+  "files": ["src/normalize-labels.mjs"],
+  "acceptanceFiles": ["test/normalize-labels.test.mjs"],
+  "knowledgeFiles": ["docs/label-rules.md"],
+  "checks": [
+    {"id": "labels", "command": "node", "args": ["--test", "test/normalize-labels.test.mjs"], "timeoutMs": 60000}
+  ],
+  "timeoutMs": 600000,
+  "constraints": ["Do not modify acceptance tests. Do not commit, merge or push. Keep the public function signature."]
+}

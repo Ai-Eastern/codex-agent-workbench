@@ -2,11 +2,17 @@
   "name": "codex-agent-workbench",
   "version": "0.1.0",
   "private": true,
+  "description": "A local coding-agent workbench with inspectable acceptance, recovery and project knowledge.",
   "type": "module",
   "engines": { "node": ">=24.0.0" },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "workbench": "node src/cli.mjs"
+    "demo": "node scripts/showcase.mjs",
+    "evaluate": "node scripts/evidence-lab.mjs",
+    "workbench": "node src/cli.mjs",
+    "agent": "node src/agent-cli.mjs",
+    "smoke:agent": "node scripts/smoke-agent.mjs",
+    "start": "node src/app-server.mjs"
   },
   "dependencies": {
     "@langchain/core": "1.2.10",

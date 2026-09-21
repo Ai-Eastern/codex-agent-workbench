@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c2b29">
+  <title>Workbench · 本地编码任务</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">跳至主要内容</a>
+  <aside class="sidebar" aria-label="项目与任务">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">⌘</span><div>WORKBENCH<span>CODEX AGENT</span></div></div>
+    <div class="project-box"><span class="eyebrow">当前项目</span><strong id="project-name">连接本地工作区…</strong><p id="project-path"></p></div>
+    <button type="button" id="new-task" class="new-task"><span aria-hidden="true">＋</span> 新建任务</button>
+    <div class="list-heading"><span>编码任务</span><span id="run-count">—</span></div>
+    <nav id="run-list" class="run-list" aria-label="选择编码任务"><p class="sidebar-empty">正在读取任务…</p></nav>
+    <div class="sidebar-footer"><span id="connection-dot" class="connection-dot"></span><span id="connection-status">连接中</span><button id="refresh" type="button" title="刷新项目与任务" aria-label="刷新项目与任务">↻</button></div>
+  </aside>
+
+  <main id="main" class="main">
+    <header class="topbar"><div><span class="breadcrumb">本地工作区 <span>/</span></span> <strong id="page-label">新建任务</strong></div><span class="local-label">LOCAL WORKBENCH</span></header>
+    <div id="error-banner" class="error-banner" role="alert" hidden><span id="error-message"></span><button type="button" id="dismiss-error" aria-label="关闭错误消息">×</button></div>
+    <p id="action-message" class="action-message" role="status" aria-live="polite"></p>
+
+    <section id="create-view" class="create-view" aria-labelledby="create-title">
+      <div class="view-heading"><div><p class="eyebrow">NEW TASK</p><h1 id="create-title">新建编码任务</h1><p class="description">定义要完成的改动，以及如何判断它是否合格。</p></div><span class="outline-label">独立工作区</span></div>
+      <div class="execution-notice"><span aria-hidden="true">↗</span><p>使用本机 Codex 登录和额度，在独立 worktree 运行；<strong>不会合并到原分支</strong>。</p></div>
+      <form id="task-form">
+        <div class="field"><label for="objective">这次要完成什么 <span class="required">*</span></label><textarea id="objective" name="objective" rows="4" required placeholder="描述具体问题、预期行为和完成条件。"></textarea><p class="field-help">写清楚改动的目的与约束，Agent 会据此读取项目并实现。</p></div>
+        <div class="form-grid">
+          <div class="field"><label for="files">允许改动的文件 <span class="required">*</span></label><textarea id="files" name="files" rows="5" required spellcheck="false" class="mono" placeholder="src/example.js&#10;src/another-file.js"></textarea><p class="field-help">相对仓库路径，每行一个文件。仅填写本次允许 Agent 修改的文件。</p></div>
+          <div class="field"><label for="acceptance-files">受保护的验收文件</label><textarea id="acceptance-files" name="acceptanceFiles" rows="5" spellcheck="false" class="mono" placeholder="test/example.test.js"></textarea><p class="field-help">相对仓库路径，每行一个。验收测试文件不可同时列入允许改动的文件。</p></div>
+        </div>
+        <div class="field"><label for="check-command">验收命令 <span class="field-label-note">命令与参数的 JSON 数组</span></label><textarea id="check-command" name="checkCommand" rows="2" class="mono" spellcheck="false" required>["node", "--test"]</textarea><p class="field-help">例如 <code>["node", "--test", "test/example.test.js"]</code>。直接执行命令，不经过 shell。</p></div>
+        <details class="advanced"><summary>知识与执行设置 <span>可选</span></summary><div class="advanced-content"><div class="field"><label for="knowledge-files">项目知识 Markdown</label><textarea id="knowledge-files" name="knowledgeFiles" rows="3" class="mono" spellcheck="false" placeholder="docs/architecture.md"></textarea><p class="field-help">每行一个项目内 Markdown 文件，用于为本次任务提供额外上下文。</p></div><div class="form-grid"><div class="field"><label for="model">模型</label><input id="model" name="model" type="text" autocomplete="off" placeholder="沿用本机 Codex 配置"><p class="field-help">留空时不覆盖已有模型配置。</p></div><div class="field"><label for="timeout">单次执行预算 <span class="field-label-note">分钟</span></label><input id="timeout" name="timeout" type="number" min="1" max="60" step="1" value="10" required><p class="field-help">超时会中断当前编码进程。</p></div></div></div></details>
+        <div class="form-footer"><p>先编码，再独立验收。通过后由你检查 diff。</p><button id="start-task" type="submit" class="primary-button" disabled>开始编码 <span aria-hidden="true">↗</span></button></div>
+      </form>
+    </section>
+
+    <section id="run-view" class="run-view" aria-labelledby="run-title" hidden>
+      <div class="view-heading"><div><p id="run-id" class="eyebrow"></p><h1 id="run-title"></h1><p id="run-created" class="description"></p></div><button id="cancel-run" type="button" class="danger-button" hidden>停止执行</button></div>
+      <div class="run-overview"><div><span class="metric-label">当前状态</span><strong id="run-phase" class="phase-badge"></strong></div><div><span class="metric-label">允许改动</span><strong id="run-file-count"></strong></div><div><span class="metric-label">执行预算</span><strong id="run-budget"></strong></div></div>
+      <div class="workspace-line"><span>WORKTREE</span><code id="workspace-path">尚未生成工作区</code></div>
+
+      <section id="repair-panel" class="repair-panel" aria-labelledby="repair-title" hidden><div><h2 id="repair-title">验收未通过</h2><p>检查下方验收记录，写明本轮需要修复的问题。</p></div><form id="repair-form"><label for="repair-reason">具体修复原因</label><textarea id="repair-reason" rows="3" required placeholder="例如：边界输入仍触发异常，修复后需要满足原验收条件。"></textarea><button id="repair-run" type="submit" class="secondary-button">按原因修复一次</button></form></section>
+
+      <section id="review-panel" class="review-panel" hidden><div><h2>等待你的评审</h2><p>验收已通过，原分支尚未合并。查看 diff，确认改动符合预期。</p></div><div class="review-actions"><button id="show-diff" type="button" class="primary-button">查看 diff</button><button id="download-diff" type="button" class="secondary-button">下载 diff ↓</button></div></section>
+      <section id="diff-panel" class="detail-panel" aria-labelledby="diff-title" hidden><div class="panel-header"><h2 id="diff-title">工作区改动</h2><button id="hide-diff" type="button" class="text-button">收起</button></div><pre id="diff-content" class="code-output" tabindex="0"></pre></section>
+
+      <section class="detail-panel" aria-labelledby="summary-title"><div class="panel-header"><h2 id="summary-title">Agent 交付说明</h2><span id="usage-summary" class="panel-note"></span></div><pre id="run-summary" class="summary-output"></pre></section>
+      <section class="detail-panel" aria-labelledby="acceptance-title"><div class="panel-header"><h2 id="acceptance-title">独立验收</h2><span class="panel-note">来自实际验收记录</span></div><div id="acceptance-content" class="acceptance-content"></div></section>
+      <section class="detail-panel" aria-labelledby="events-title"><div class="panel-header"><h2 id="events-title">执行记录</h2><span id="event-count" class="panel-note"></span></div><div id="event-list" class="event-list"></div><details class="raw-details"><summary>查看近期原始事件（全量保存在任务目录）</summary><pre id="raw-events" class="code-output" tabindex="0"></pre></details></section>
+      <details class="raw-details run-raw"><summary>查看任务配置与完整状态</summary><pre id="raw-run" class="code-output" tabindex="0"></pre></details>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
