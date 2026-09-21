@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#182a28">
+  <meta name="description" content="沿着一次代码交付，检查任务约定、验收结果与恢复决定。Codex Agent Workbench 的本地只读证据浏览器。">
+  <title>Evidence Lab · Codex Agent Workbench</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳至主要内容</a>
+  <aside class="sidebar" aria-label="站点导航">
+    <a class="brand" href="#overview" aria-label="Evidence Lab 首页">
+      <span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>WORKBENCH<span class="brand-sub">CODEX AGENT</span></span>
+    </a>
+    <div class="sidebar-caption">THE DELIVERY LAB</div>
+    <nav class="nav-list" aria-label="页面章节">
+      <a class="nav-link active" href="#overview"><span>01</span>运行概览<span class="nav-arrow" aria-hidden="true">↗</span></a>
+      <a class="nav-link" href="#evidence"><span>02</span>交付证据</a>
+      <a class="nav-link" href="#checks"><span>03</span>完整检查</a>
+      <a class="nav-link" href="#boundaries"><span>04</span>能力边界</a>
+    </nav>
+    <div class="sidebar-note">
+      <span class="side-rule"></span>
+      <p>一次交付。<br>每个结论，都有来处。</p>
+      <span>从约定到证据，逐步复核。</span>
+    </div>
+    <div class="sidebar-footer"><span class="local-dot" aria-hidden="true"></span>LOCAL / READ ONLY</div>
+  </aside>
+
+  <main id="main" class="main">
+    <header class="topbar">
+      <span class="breadcrumb">WORKBENCH <span>/</span> <strong>Evidence Lab</strong></span>
+      <a class="source-link" href="https://github.com/Ai-Eastern/codex-agent-workbench" target="_blank" rel="noopener noreferrer">项目源码 <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <section id="overview" class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span aria-hidden="true"></span>可复核的代码交付</div>
+        <h1 id="hero-title">让 Agent 的交付，<br>经得起追问<span class="title-period">。</span></h1>
+        <p class="hero-description">沿着一次代码变更，检查任务约定、验收结果与恢复决定。</p>
+        <div class="demo-label"><span aria-hidden="true">◇</span> 确定性机制演示 <span class="label-divider">/</span> 0 次模型调用</div>
+      </div>
+      <div class="hero-aside">
+        <div class="specimen-label">INSPECT THE DELIVERY</div>
+        <div class="proof-chain" aria-hidden="true"><span>约定</span><i></i><span>变更</span><i></i><span>验收</span><i></i><span class="chain-end">证据</span></div>
+        <p>验收为何失败？<br>修复之后，依据还有效吗？</p>
+        <a class="text-link" href="#evidence">打开证据，自己判断 <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <div class="command-bar">
+      <div class="command-copy"><span class="terminal-prefix" aria-hidden="true">&gt;_</span><span class="command-caption">本地复现</span><code id="demo-command">npm run demo</code></div>
+      <button class="quiet-button copy-button" id="copy-command" type="button">复制命令 <span aria-hidden="true">⧉</span></button>
+    </div>
+
+    <div id="load-state" class="load-state" role="status" aria-live="polite"><span class="loading-dot" aria-hidden="true"></span><p>正在读取本次运行的证据报告…</p></div>
+    <div class="report-toolbar">
+      <p id="report-meta" class="report-meta">只读证据浏览器 · 支持离线查看</p>
+      <div class="report-actions">
+        <button id="import-report" class="quiet-button" type="button">载入报告</button>
+        <input id="report-file" type="file" accept=".json,application/json" hidden>
+        <button id="download-report" class="quiet-button" type="button" disabled>下载 JSON <span aria-hidden="true">↓</span></button>
+        <a id="export-html" class="quiet-button" href="/export.html" download>离线 HTML <span aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+    <p id="action-status" class="action-status" role="status" aria-live="polite"></p>
+
+    <div id="report-content" hidden>
+      <section id="evidence" class="evidence-section" aria-labelledby="case-title">
+        <div class="section-heading"><span class="section-number">01 / CASE STUDY</span><span class="section-note">来自本次运行的实际记录</span></div>
+        <div class="case-header">
+          <div><p id="scenario-id" class="case-id"></p><h2 id="case-title"></h2><p id="case-objective" class="case-objective"></p></div>
+          <div class="check-summary"><strong id="check-score"></strong><span>机制断言通过</span><small>不是模型任务成功率</small></div>
+        </div>
+        <div class="case-workspace">
+          <div class="stage-sidebar"><div class="panel-eyebrow">交付过程 <span>选择阶段查看证据</span></div><nav id="stage-list" class="stage-list" aria-label="交付阶段"></nav></div>
+          <section id="stage-detail" class="stage-detail" aria-labelledby="stage-title">
+            <div class="stage-detail-top"><span id="stage-number" class="stage-number"></span><span id="stage-status" class="status-badge"></span></div>
+            <h3 id="stage-title"></h3><p id="stage-description" class="stage-description"></p>
+            <div class="evidence-label"><span>阶段证据</span><span>原始字段 · 只读</span></div>
+            <pre id="stage-json" class="evidence-code" tabindex="0" aria-label="所选阶段的 JSON 证据"></pre>
+            <div class="stage-footer"><span aria-hidden="true">↳</span> 拒绝与拦截也是机制结果；以完整检查中的断言为准。</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="patch-section" aria-labelledby="patch-title">
+        <div class="content-heading"><div><span class="section-number">02 / THE CHANGE</span><h2 id="patch-title">代码变了哪里</h2></div><div id="patch-controls" class="segmented-control" role="group" aria-label="代码显示方式"><button type="button" data-view="both" aria-pressed="true">对照</button><button type="button" data-view="before" aria-pressed="false">变更前</button><button type="button" data-view="after" aria-pressed="false">变更后</button></div></div>
+        <div id="patch-grid" class="patch-grid"><div id="before-pane" class="code-pane before-pane"><div class="code-pane-label"><span><i aria-hidden="true">−</i> 变更前</span><span>BEFORE</span></div><pre id="patch-before" tabindex="0" aria-label="变更前代码"></pre></div><div id="after-pane" class="code-pane after-pane"><div class="code-pane-label"><span><i aria-hidden="true">+</i> 变更后</span><span>AFTER</span></div><pre id="patch-after" tabindex="0" aria-label="变更后代码"></pre></div></div>
+      </section>
+
+      <section id="checks" class="checks-section" aria-labelledby="checks-title"><div class="content-heading"><div><span class="section-number">03 / VERIFICATION</span><h2 id="checks-title">每个结论，逐项检查</h2></div><span id="checks-count" class="section-note"></span></div><div id="checks-list" class="checks-list"></div></section>
+
+      <section class="provenance-section" aria-labelledby="provenance-title"><div class="content-heading"><div><span class="section-number">04 / PROVENANCE</span><h2 id="provenance-title">证据的来源</h2></div><span class="section-note">原文 · 产物 · 来源版本</span></div><div class="provenance-grid"><div><h3 class="small-heading">项目知识</h3><div id="knowledge-list"></div></div><div><h3 class="small-heading">交付产物</h3><div id="artifact-list"></div></div></div><details class="raw-report"><summary>检查完整原始报告 <span>JSON</span></summary><pre id="raw-json" tabindex="0" aria-label="完整原始 JSON 报告"></pre></details></section>
+
+      <section id="boundaries" class="boundaries-section" aria-labelledby="boundaries-title"><div class="boundary-mark" aria-hidden="true">i</div><div><span class="section-number">READ THE BOUNDARY</span><h2 id="boundaries-title">这份演示能证明什么</h2><p id="execution-notice"></p><ul id="limitations-list"></ul><p class="boundary-fixed">本页只读取报告。阶段选择用于检查已有记录，不会触发 Agent、修改代码或执行修复。</p></div></section>
+      <footer class="page-footer"><span>CODEX AGENT WORKBENCH</span><span>Evidence over assumption.</span><a href="#overview">返回顶部 ↑</a></footer>
+    </div>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

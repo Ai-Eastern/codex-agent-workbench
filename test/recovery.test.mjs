@@ -49,6 +49,8 @@ test('acceptance recovery respects the runner lock and requires an explicit reas
 
 test('one explicit task repair preserves the run and evidence but starts a new attempt',async t=>{
   const f=await failedRun(t),old=workflow.getPacket(f.cfg,f.req.id,'A');
+  const oldActor=process.env.CODEX_THREAD_ID;process.env.CODEX_THREAD_ID=f.cfg.pmThreadId;
+  t.after(()=>{if(oldActor===undefined)delete process.env.CODEX_THREAD_ID;else process.env.CODEX_THREAD_ID=oldActor;});
   const oldResult=fs.readFileSync(old.receiptPath),oldPacket=fs.readFileSync(path.join(f.cfg.controlRoot,'runs/recover/packets/A.json'));
   const ready=workflow.repairTask(f.cfg,f.req.id,'A',f.grant);
   assert.equal(ready.status,'RUNNING');assert.equal(ready.tasks[0].status,'PENDING');
@@ -57,12 +59,17 @@ test('one explicit task repair preserves the run and evidence but starts a new a
   const archive=path.join(f.cfg.controlRoot,`runs/recover/history/repair-${old.attemptId}`);
   assert.deepEqual(fs.readFileSync(path.join(archive,'result.json')),oldResult);assert.deepEqual(fs.readFileSync(path.join(archive,'packet.json')),oldPacket);
   assert.deepEqual(fs.readFileSync(path.join(archive,'acceptance.json')),f.bytes);
-  await workflow.advance(f.cfg,f.req.id);
-  await assert.rejects(workflow.advance(f.cfg,f.req.id),/identity mismatch/);
+  for(let i=0;i<2;i++){
+    const waiting=await workflow.advance(f.cfg,f.req.id);assert.equal(waiting.status,'RUNNING');assert.equal(waiting.tasks[0].status,'ASSIGNED');
+  }
+  assert.notEqual(current.receiptPath,old.receiptPath);assert.equal(fs.existsSync(current.receiptPath),false);
+  assert.deepEqual(fs.readFileSync(old.receiptPath),oldResult);
   fs.writeFileSync(current.files[0],'repaired artifact');
-  writeJson(current.receiptPath,{runId:f.req.id,taskId:'A',attemptId:current.attemptId,status:'done',summary:'repaired'});
+  const submitted=workflow.submitResult(f.cfg,f.req.id,'A',{expectedAttemptId:current.attemptId,summary:'repaired'});
+  assert.equal(submitted.status,'SUBMITTED');assert.equal(submitted.receiptPath,current.receiptPath);
   const calls=[];const done=await workflow.advance(f.cfg,f.req.id,{commandRunner:c=>{calls.push(c.id);return {exitCode:0};}});
   assert.equal(done.status,'COMPLETE');assert.deepEqual(calls,['business','transient']);
+  assert.deepEqual(fs.readFileSync(old.receiptPath),oldResult);assert.deepEqual(fs.readFileSync(path.join(archive,'result.json')),oldResult);
   assert.throws(()=>workflow.repairTask(f.cfg,f.req.id,'A',f.grant),/FAILED/);
 });
 

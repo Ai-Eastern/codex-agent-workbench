@@ -1,6 +1,6 @@
 # Codex Agent Workbench
 
-Build a local Codex Desktop development workflow with a shared project knowledge layer and direct, native-subagent, and LangGraph execution routes. Keep Markdown knowledge, private runtime configuration, Desktop task identities, transcripts, credentials, and resumes outside Git.
+Build a local coding workbench with explicit standalone Codex CLI execution and the existing Codex Desktop direct, native-subagent, and LangGraph routes. Standalone tasks use their own worktree and local controller identity; never masquerade as Desktop tasks. Keep private Markdown knowledge, runtime configuration, Desktop task identities, transcripts, credentials, and resumes outside Git.
 
 The project manager owns planning, task contracts, integration acceptance and project knowledge decisions. Engineers never recursively delegate. User requests for research or pause do not dispatch work. Use existing Desktop project tasks when configured; do not silently substitute headless tasks.
 

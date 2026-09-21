@@ -61,12 +61,23 @@ export function configFrom(file){
   knowledgeIndexPath(cfg);
   if(cfg.workRoot===cfg.controlRoot||cfg.workRoot===cfg.vaultRoot||cfg.vaultRoot===cfg.controlRoot)throw Error('Use separate work, control and knowledge directories');
   if(!Number.isInteger(cfg.maxWorkers)||cfg.maxWorkers<1||cfg.maxWorkers>12)throw Error('maxWorkers must be 1..12');
-  cfg.model??='gpt-5.5';cfg.thinking??='low';
-  if(!(['gpt-5.3-codex-spark','gpt-5.5'].includes(cfg.model)&&cfg.thinking==='low')&&!(cfg.model==='gpt-5.6-luna'&&['low','medium'].includes(cfg.thinking)))throw Error('Supported live profiles: gpt-5.3-codex-spark/low, gpt-5.5/low, gpt-5.6-luna/low or medium');
   cfg.workerThreads??={};
-  const ids=Object.values(cfg.workerThreads);
-  const uuid=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;
-  if(!uuid.test(cfg.pmThreadId??'')||ids.some(id=>!uuid.test(id)||id===cfg.pmThreadId)||new Set(ids).size!==ids.length)throw Error('Distinct existing PM and engineer task IDs required');
+  if(cfg.executionHost!==undefined&&cfg.executionHost!=='local')throw Error('Unsupported executionHost');
+  if(cfg.executionHost==='local'){
+    if(cfg.maxWorkers!==1||typeof cfg.workerThreads!=='object'||Array.isArray(cfg.workerThreads)||Object.keys(cfg.workerThreads).length)throw Error('Local execution requires maxWorkers=1 and empty workerThreads');
+    const identity=`local:${cfg.projectId}`;
+    if(cfg.pmThreadId!==undefined&&cfg.pmThreadId!==identity)throw Error('Local controller identity must use this project local namespace');
+    cfg.pmThreadId=identity;
+    for(const key of ['model','thinking']){
+      cfg[key]??=null;
+      if(cfg[key]!==null&&(typeof cfg[key]!=='string'||!cfg[key]||cfg[key].length>200||/[\s\x00-\x1f\x7f]/u.test(cfg[key])))throw Error(`Invalid local ${key}`);
+    }
+  }else{
+    cfg.model??='gpt-5.5';cfg.thinking??='low';
+    if(!(['gpt-5.3-codex-spark','gpt-5.5'].includes(cfg.model)&&cfg.thinking==='low')&&!(cfg.model==='gpt-5.6-luna'&&['low','medium'].includes(cfg.thinking)))throw Error('Supported live profiles: gpt-5.3-codex-spark/low, gpt-5.5/low, gpt-5.6-luna/low or medium');
+    const ids=Object.values(cfg.workerThreads),uuid=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i;
+    if(!uuid.test(cfg.pmThreadId??'')||ids.some(id=>!uuid.test(id)||id===cfg.pmThreadId)||new Set(ids).size!==ids.length)throw Error('Distinct existing PM and engineer task IDs required');
+  }
   Object.defineProperty(cfg,'configFile',{value:path.resolve(file)});
   return cfg;
 }
@@ -75,6 +86,7 @@ export function validateRequest(value,cfg){
   if(req.projectId!==undefined&&req.projectId!==cfg.projectId)throw Error('Request projectId does not match selected project config');
   if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(req.id??'')||typeof req.objective!=='string'||!req.objective.trim())throw Error('Stable request id and objective required');
   if(!['direct','native','langgraph'].includes(req.mode)||typeof req.reason!=='string'||!req.reason.trim())throw Error('Explicit execution mode and reason required');
+  if(cfg.executionHost==='local'&&req.mode!=='direct')throw Error('Local execution only supports direct mode');
   if(!Array.isArray(req.tasks)||!req.tasks.length||req.tasks.length>cfg.maxWorkers)throw Error('Invalid task count');
   const ids=new Set(),files=[];
   for(const task of req.tasks){
@@ -92,6 +104,10 @@ export function validateRequest(value,cfg){
     }
     if(!Array.isArray(task.dependsOn)||new Set(task.dependsOn).size!==task.dependsOn.length)throw Error('Invalid dependencies');
     if(!Array.isArray(task.files)||!task.files.length)throw Error('Exact file ownership required');
+    if(task.deletedFiles!==undefined){
+      if(cfg.executionHost!=='local')throw Error('deletedFiles requires local execution');
+      if(!Array.isArray(task.deletedFiles)||new Set(task.deletedFiles).size!==task.deletedFiles.length||task.deletedFiles.some(file=>!task.files.includes(file)))throw Error('deletedFiles must be a unique exact subset of task files');
+    }
     for(const name of task.files){
       const full=ownedPath(cfg,name),key=full.toLowerCase();
       if(files.some(x=>x===key||x.startsWith(key+path.sep)||key.startsWith(x+path.sep)))throw Error('Overlapping file ownership');
@@ -119,4 +135,4 @@ export function validateRequest(value,cfg){
   if(!Array.isArray(req.constraints)||req.constraints.some(x=>typeof x!=='string'))throw Error('Invalid constraints');
   return req;
 }
-export function projectIdentity(cfg){return digest({projectId:cfg.projectId,projectRoot:cfg.projectRoot,controlRoot:cfg.controlRoot,workRoot:cfg.workRoot,vaultRoot:cfg.vaultRoot,pmThreadId:cfg.pmThreadId,workerThreads:cfg.workerThreads,model:cfg.model,thinking:cfg.thinking,maxWorkers:cfg.maxWorkers,captureEnabled:cfg.captureEnabled===true});}
+export function projectIdentity(cfg){return digest({projectId:cfg.projectId,projectRoot:cfg.projectRoot,controlRoot:cfg.controlRoot,workRoot:cfg.workRoot,vaultRoot:cfg.vaultRoot,pmThreadId:cfg.pmThreadId,workerThreads:cfg.workerThreads,model:cfg.model,thinking:cfg.thinking,maxWorkers:cfg.maxWorkers,captureEnabled:cfg.captureEnabled===true,...(cfg.executionHost==='local'?{executionHost:'local'}:{})});}

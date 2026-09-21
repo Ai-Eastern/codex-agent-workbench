@@ -1,8 +1,27 @@
 # 架构与数据流
 
-本地 Node.js 24 控制器通过一个 CLI 入口管理项目任务。Codex Skill 决定何时读取知识、选择路线和接续工作；LangGraph.js 驱动状态推进；SQLite 分别保存执行记录和可重建的全文索引。执行仍发生在现有 Codex 任务或真实原生子 Agent 中。
+本地 Node.js 24 控制器提供独立工作台与原有 Desktop 两种明确入口，共用任务合同、LangGraph 状态推进、SQLite 执行记录和项目知识索引。
 
-## 角色与执行关系
+## 独立工作台
+
+```mermaid
+flowchart LR
+    UI[网页 / agent CLI] --> Runner[local-runner：冻结合同与状态]
+    Runner --> Git[独立 detached worktree]
+    Git --> Codex[Codex CLI：JSONL 执行事件]
+    Codex --> Scope[写集、保护文件与 HEAD 检查]
+    Scope --> Check[异步独立验收进程]
+    Check -->|通过| Patch[补丁与哈希 / 人工评审]
+    Check -->|失败| Failed[保留失败 / 明确发起一次修复]
+    Failed --> Codex
+    Runner <--> Controller[原有 workflow / SQLite]
+```
+
+`executionHost: local` 使用本地身份命名空间，只支持单任务 direct；不借用 Desktop 任务 UUID。Codex 默认沿用本机配置，以 `workspace-write` 启动新临时 CLI 会话；编排进程负责结果提交及验收，编码进程不写验收回执。模型执行和验收均可取消，验收在独立 worker 中运行，HTTP 服务无需等待同步命令结束。
+
+每个运行在仓库外保留 `run.json`、`worktree/`、`control/`、`attempts/` 和通过验收后的 `candidate.patch`。重复任务 ID 只读取原结果；一次明确修复生成新 attempt 并保留失败。完成态再次读取时重新核验产物、受保护文件与补丁。程序中断造成的遗留锁需要人工检查，不能以删除锁自动重启模型。工作树隔离和应用层检查不等同于操作系统权限隔离；独立验收不等于隐藏测试保密。
+
+## Desktop 角色与执行关系
 
 ```mermaid
 flowchart TD
@@ -32,7 +51,12 @@ PM 同时承担原 TL 的常规技术职责。工程师不递归委派。跨项�
 | 组件 | 负责内容 |
 | --- | --- |
 | [src/contracts.mjs](../src/contracts.mjs) | 配置、请求、项目身份、路径、文件冲突和依赖校验 |
-| [src/cli.mjs](../src/cli.mjs) | 唯一命令入口，路由到准备、执行、查询、知识或多项目摘要 |
+| [src/agent-cli.mjs](../src/agent-cli.mjs)、[src/app-server.mjs](../src/app-server.mjs) | 独立任务 CLI 与 loopback HTTP 操作台 |
+| [src/local-runner.mjs](../src/local-runner.mjs) | worktree、执行、验收、修复及补丁交付的持久状态 |
+| [src/codex-executor.mjs](../src/codex-executor.mjs) | Codex CLI 解析、JSONL、原始日志、预算和进程树取消 |
+| [src/git-workspace.mjs](../src/git-workspace.mjs) | 独立工作树、写集检查、临时索引与二进制补丁 |
+| [src/local-check.mjs](../src/local-check.mjs) | 异步验收 worker、超时和取消 |
+| [src/cli.mjs](../src/cli.mjs) | 原 Desktop 命令入口，路由到准备、执行、查询、知识或多项目摘要 |
 | [src/workflow.mjs](../src/workflow.mjs) | 冻结任务包、文件预留、状态图、接收结果、独立验收和 capture |
 | [src/desktop.mjs](../src/desktop.mjs) | 通过当前 Desktop 内部 pipe 读取和派送已登记任务 |
 | [src/portfolio-barrier.mjs](../src/portfolio-barrier.mjs) | 冻结跨项目身份，收集有期限 ready，单次 release 后各 PM 派工 |
